@@ -53,7 +53,7 @@ def callback(pos):
 		offset_theta = -pos.theta
 		ONCE = 0
 
-	radians_covered = pos.theta + offset_theta
+	radians_covered = pos.theta + offset_theta  # Now initial orientation position is taken as 0 rad
 
 	if prev_theta < 0 and radians_covered >= 0:  # condition for completion of revolution when angular velocity is +ve
 		rotation_count += 1
