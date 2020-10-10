@@ -62,7 +62,7 @@ def callback(pos):
 		radians_covered += 2*PI * rotation_count
 	
 	prev_theta = pos.theta + offset_theta
-	rospy.loginfo("round and round we go, {} rad".format(radians_covered, offset_theta))
+	rospy.loginfo("round and round we go, {} rad".format(radians_covered))
 
 if __name__ == '__main__':
 	rospy.init_node('turtle_revolve')
