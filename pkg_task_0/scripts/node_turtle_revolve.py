@@ -26,7 +26,7 @@ def main():
 	rospy.Subscriber("/turtle1/pose", Pose, callback)
 	pub = rospy.Publisher('/turtle1/cmd_vel', Twist, queue_size=10)
 	cmd = Twist()
-	time_period = 2
+	time_period = 3
 	radius = 2
 	num_turns = 1
 	cmd.linear.x = (TWO_PI * radius) / time_period
@@ -67,5 +67,5 @@ def callback(pos):
 
 
 if __name__ == '__main__':
-	rospy.init_node('turtle_revolve')
+	rospy.init_node('node_turtle_revolve')
 	main()
