@@ -15,14 +15,15 @@ from turtlesim.msg import Pose
 PI = 3.14159265
 TWO_PI = 2 * PI
 ONCE = 1
-radians_covered = 0
-rotation_count = 0
-prev_theta = 0
-offset_theta = 0
+RADIANS_COVERED = 0
+ROTATION_COUNT = 0
+PREV_THETA = 0
+OFFSET_THETA = 0
 
 
 def main():
-	global rotation_count, PI
+	""" This function moves the turtle in a circle """
+	global ROTATION_COUNT, PI
 	rospy.Subscriber("/turtle1/pose", Pose, callback)
 	pub = rospy.Publisher('/turtle1/cmd_vel', Twist, queue_size=10)
 	cmd = Twist()
@@ -37,7 +38,7 @@ def main():
 	cmd.angular.z = TWO_PI / time_period
 	rate = rospy.Rate(100)
 	while not rospy.is_shutdown():
-		if rotation_count == num_turns:
+		if ROTATION_COUNT == num_turns:
 			cmd.linear.x = 0
 			cmd.angular.z = PI / 2
 			pub.publish(cmd)
@@ -47,23 +48,28 @@ def main():
 
 
 def callback(pos):
-	global radians_covered, rotation_count, prev_theta, offset_theta, ONCE
+	""" This function is called everytime position data is published on /turtle1/pose topic """
+	global RADIANS_COVERED, ROTATION_COUNT, PREV_THETA, OFFSET_THETA, ONCE
 
 	if ONCE:
-		offset_theta = -pos.theta
+		OFFSET_THETA = -pos.theta
 		ONCE = 0
 
-	radians_covered = pos.theta + offset_theta  # Now initial orientation position is taken as 0 rad
+	# Now initial orientation position is taken as 0 rad
+	RADIANS_COVERED = pos.theta + OFFSET_THETA
 
-	if prev_theta < 0 and radians_covered >= 0:  # condition for completion of revolution when angular velocity is +ve
-		rotation_count += 1
-	if radians_covered < 0:  # if theta < 0 that means that it is in b/w pi and 2pi
-		radians_covered += TWO_PI * (rotation_count + 1)
-	else:  # if theta > 0 that means that it is in b/w 0 and pi so when rotation_count is 0 nothing is added to theta
-		radians_covered += TWO_PI * rotation_count
+	# condition for completion of revolution when angular velocity is +ve
+	if PREV_THETA < 0 and RADIANS_COVERED >= 0:
+		ROTATION_COUNT += 1
+	if RADIANS_COVERED < 0:  # if theta < 0 that means that it is in b/w pi and 2pi
+		RADIANS_COVERED += TWO_PI * (ROTATION_COUNT + 1)
 
-	prev_theta = pos.theta + offset_theta
-	rospy.loginfo("round and round we go, {} rad".format(radians_covered))
+	# if theta > 0 that means its b/w 0 and pi so when ROTATION_COUNT is 0 nothing is added to theta
+	else:
+		RADIANS_COVERED += TWO_PI * ROTATION_COUNT
+
+	PREV_THETA = pos.theta + OFFSET_THETA
+	rospy.loginfo("round and round we go, {} rad".format(RADIANS_COVERED))
 
 
 if __name__ == '__main__':
