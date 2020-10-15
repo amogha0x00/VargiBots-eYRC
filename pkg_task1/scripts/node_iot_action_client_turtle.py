@@ -8,6 +8,7 @@ import time
 
 from pkg_task1.msg import msgTurtleAction       # Message Class that is used by ROS Actions internally
 from pkg_task1.msg import msgTurtleGoal         # Message Class that is used for Goal messages
+from pkg_ros_iot_bridge.msg import msgMqttSub           # Message Class for MQTT Subscription Messages
 
 
 class SimpleActionClientTurtle:
@@ -46,6 +47,14 @@ class SimpleActionClientTurtle:
     def feedback_callback(self, feedback):
         rospy.loginfo(feedback)
 
+    def iot_cmd_callback(self, msgMqttSub):
+        print(msgMqttSub)
+        if msgMqttSub.message == 'start':
+            self.send_goal(2, 0)
+            rospy.sleep(5)
+        for i in range(6):
+            self.send_goal(2, 60)
+            rospy.sleep(5)
 
 # Main Function
 def main():
@@ -55,13 +64,15 @@ def main():
     # 2. Create a object for Simple Action Client.
     obj_client = SimpleActionClientTurtle()
 
+    rospy.Subscriber('/ros_iot_bridge/mqtt/sub', msgMqttSub, obj_client.iot_cmd_callback)
+
     # 3. Send Goals to Draw a polygon
     
-    obj_client.send_goal(2, 0)
-    rospy.sleep(5)
-    for i in range(6):
-        obj_client.send_goal(2, 60)
-        rospy.sleep(5)
+    # obj_client.send_goal(2, 0)
+    # rospy.sleep(5)
+    # for i in range(6):
+    #     obj_client.send_goal(2, 60)
+    #     rospy.sleep(5)
 
     # obj_client.send_goal(2, 90)
     # rospy.sleep(5)
