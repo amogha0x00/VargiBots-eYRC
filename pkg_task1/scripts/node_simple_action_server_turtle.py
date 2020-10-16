@@ -36,6 +36,7 @@ class SimpleActionServerTurtle:
         # Declare constants
         self._config_ros_pub_topic = '/turtle1/cmd_vel'
         self._config_ros_sub_topic = '/turtle1/pose'
+        self._config_rate = 15
 
         # Declare variables
         self._curr_x = 0
@@ -68,8 +69,7 @@ class SimpleActionServerTurtle:
         handle_pub_vel = rospy.Publisher(
             self._config_ros_pub_topic, Twist, queue_size=10)
 
-        # 1 Hz : Loop will its best to run 1 time in 1 second
-        var_loop_rate = rospy.Rate(10)
+        var_loop_rate = rospy.Rate(self._config_rate)
 
         # Set the Speed of the Turtle according to the direction
         if(param_dir == 'b'):
@@ -122,8 +122,7 @@ class SimpleActionServerTurtle:
         handle_pub_vel = rospy.Publisher(
             self._config_ros_pub_topic, Twist, queue_size=10)
 
-        # 1 Hz : Loop will its best to run 1 time in 1 second
-        var_loop_rate = rospy.Rate(10)
+        var_loop_rate = rospy.Rate(self._config_rate)
 
         # Set the speed of rotation according to param_dir
         if(param_dir == 'a'):

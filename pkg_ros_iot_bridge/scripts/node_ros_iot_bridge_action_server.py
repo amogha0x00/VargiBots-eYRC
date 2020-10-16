@@ -9,7 +9,7 @@ import threading
 from pkg_ros_iot_bridge.msg import msgRosIotAction      # Message Class that is used by ROS Actions internally
 from pkg_ros_iot_bridge.msg import msgRosIotGoal        # Message Class that is used for Goal Messages
 from pkg_ros_iot_bridge.msg import msgRosIotResult      # Message Class that is used for Result Messages
-from pkg_ros_iot_bridge.msg import msgRosIotFeedback    # Message Class that is used for Feedback Messages    
+from pkg_ros_iot_bridge.msg import msgRosIotFeedback    # Message Class that is used for Feedback Messages
 
 from pkg_ros_iot_bridge.msg import msgMqttSub           # Message Class for MQTT Subscription Messages
 
@@ -43,6 +43,8 @@ class IotRosBridgeActionServer:
 		self._config_mqtt_pub_topic = param_config_iot['mqtt']['topic_pub']
 		self._config_mqtt_qos = param_config_iot['mqtt']['qos']
 		self._config_mqtt_sub_cb_ros_topic = param_config_iot['mqtt']['sub_cb_ros_topic']
+		self._config_spread_sheet_id = param_config_iot['google_apps']['spread_sheet_id']
+		self._config_sheet_name = 'task1'
 		print(param_config_iot)
 
 
@@ -109,7 +111,17 @@ class IotRosBridgeActionServer:
 			else:
 				goal_handle.set_rejected()
 				return
-		
+
+		elif(goal.protocol == 'http'):
+			if((goal.mode == "get") or (goal.mode == "post")):
+				goal_handle.set_accepted()
+				
+				# Start a new thread to process new goal from the client (For Asynchronous Processing of Goals)
+				# 'self.process_goal' - is the function pointer which points to a function that will process incoming Goals
+				thread = threading.Thread(  name="worker",
+											target=self.process_goal,
+											args=(goal_handle,) )
+				thread.start()	
 		else:
 			goal_handle.set_rejected()
 			return
@@ -164,6 +176,29 @@ class IotRosBridgeActionServer:
 				else:
 					rospy.logerr("Failed to start MQTT Subscribe Thread")
 					result.flag_success = False
+		
+		elif (goal.protocol == "http"):
+			rospy.logwarn("HTTP")
+			if(goal.mode == "get"):
+				rospy.logwarn("HTTP GET Goal ID: " + str(goal_id.id))
+
+				rospy.logwarn(goal.topic + " > " + goal.message)
+
+				# update_spreadsheet((spreadsheet_id, id, 'team_id', 'unique_id', '{'turtle_x': , 'turtle_y':, 'turtle_theta': }' ),....)
+				ret = iot.update_spreadsheet( (self._config_spread_sheet_id,
+										self._config_sheet_name,
+										1823,  # hardcoded team id ;)
+										'EsNEciqV',  # hardcoded unique id ;) 
+										goal.message) )
+
+				if(ret == 0):
+					rospy.loginfo("Updating Spreadsheet Successful.")
+					result.flag_success = True
+				else:
+					rospy.logerr("Updating Spreadsheet Failed")
+					result.flag_success = False
+
+
 
 		rospy.loginfo("Send goal result to client")
 		if (result.flag_success == True):

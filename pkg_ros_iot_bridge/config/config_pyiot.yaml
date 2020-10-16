@@ -7,7 +7,9 @@ config_iot:
     server_port: 1883
     topic_sub: "eyrc/EsNEciqV/iot_to_ros"  # <unique_id> = EsNEciqV
     topic_pub: "eyrc/EsNEciqV/ros_to_iot"  # <unique_id> = EsNEciqV
-    qos: 0
+    qos: 1
 
     sub_cb_ros_topic: "/ros_iot_bridge/mqtt/sub"   # ROS nodes can listen to this topic to receive data from MQTT
 
+  google_apps:
+    spread_sheet_id: "AKfycbyfj6ZQSCxddxTHoFAy1L-CADEMl_X6psDD3tsIZ_XHUEVdIoA" # Spreadsheet Id
