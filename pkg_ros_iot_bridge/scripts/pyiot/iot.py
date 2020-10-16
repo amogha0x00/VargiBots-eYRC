@@ -4,8 +4,10 @@ import time
 from ast import literal_eval
 import requests
 
+
 def on_connect(client, userdata, flags, rc):
    print("Connected With Result Code "+str(rc))
+
 
 def mqtt_subscribe_thread_start(on_message, broker_url, broker_port, sub_topic, qos):
 	client = mqtt.Client()
@@ -28,21 +30,15 @@ def mqtt_publish(broker_url, broker_port, pub_topic, payload, qos):
 	return pub_info[0]
 
 
-## MY_SHEET_ID = "AKfycbyfj6ZQSCxddxTHoFAy1L-CADEMl_X6psDD3tsIZ_XHUEVdIoA"
-
-def update_spreadsheet(*args):
-	titles = ['id', 'team_id', 'unique_id']
-	parameters = {}
-	for row in args:
-		url = "https://script.google.com/macros/s/" + row[0] + "/exec"
-		for index, value in enumerate(row[1:4]):
-			parameters[titles[index]] = value
-		parameters.update(literal_eval(row[4]))
-		response = requests.get(url, params=parameters)
-		print('Made A GET request to :\n url: {}\n params: {}'.format(url, parameters))
-		print(response.content)
-	#print(not response.status_code == 200)
+def update_spreadsheet(spread_sheet_id, sheet_name, team_id, unique_id, data_points_dict_str):
+	parameters = {'id':sheet_name, 'team_id':team_id, 'unique_id':unique_id}
+	url = "https://script.google.com/macros/s/" + spread_sheet_id + "/exec"
+	
+	data_points_dict = literal_eval(data_points_dict_str)
+	parameters.update(data_points_dict)
+	
+	response = requests.get(url, params=parameters)
+	print('Made A GET request to :\n url: {}\n params: {}'.format(url, parameters))
+	print(response.content)
 	return not response.status_code == 200
 
-#update_spreadsheet(("AKfycbyfj6ZQSCxddxTHoFAy1L-CADEMl_X6psDD3tsIZ_XHUEVdIoA", 'task1', '1823', 'doesnt', "{'turtle_x':145, 'turtle_y':906,'turtle_theta':5688}"),
-#					("AKfycbyfj6ZQSCxddxTHoFAy1L-CADEMl_X6psDD3tsIZ_XHUEVdIoA", 'task1', '1823', 'doesnt', "{'turtle_x':85, 'turtle_y':336,'turtle_theta':576}"))

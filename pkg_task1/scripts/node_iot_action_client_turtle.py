@@ -7,209 +7,188 @@ import actionlib
 import time
 
 # simple action client import
-from pkg_task1.msg import msgTurtleAction       # Message Class that is used by ROS Actions internally
-from pkg_task1.msg import msgTurtleGoal         # Message Class that is used for Goal messages
-from pkg_ros_iot_bridge.msg import msgMqttSub           # Message Class for MQTT Subscription Messages
+from pkg_task1.msg import msgTurtleAction  # Message Class that is used by ROS Actions internally
+from pkg_task1.msg import msgTurtleGoal  # Message Class that is used for Goal messages
+from pkg_ros_iot_bridge.msg import msgMqttSub  # Message Class for MQTT Subscription Messages
 
 # ros_iot_bridge import
-from pkg_ros_iot_bridge.msg import msgRosIotAction      # Message Class that is used by ROS Actions internally
-from pkg_ros_iot_bridge.msg import msgRosIotGoal        # Message Class that is used for Goal Messages
-from pkg_ros_iot_bridge.msg import msgRosIotResult      # Message Class that is used for Result Messages
-from pkg_ros_iot_bridge.msg import msgRosIotFeedback    # Message Class that is used for Feedback Messages
+from pkg_ros_iot_bridge.msg import msgRosIotAction  # Message Class that is used by ROS Actions internally
+from pkg_ros_iot_bridge.msg import msgRosIotGoal  # Message Class that is used for Goal Messages
+from pkg_ros_iot_bridge.msg import msgRosIotResult  # Message Class that is used for Result Messages
+from pkg_ros_iot_bridge.msg import msgRosIotFeedback  # Message Class that is used for Feedback Messages
 
 
 class SimpleActionClientTurtle:
 
-    # Constructor
-    def __init__(self):
-        self._ac = actionlib.SimpleActionClient('/action_turtle',
-                                                msgTurtleAction)
-        self._ac.wait_for_server()
-        rospy.loginfo("Action server is up, we can send new goals!")
-        self._curr_goal_done = 0
-        self._result = msgRosIotResult()
-        self.ros_iot_client = RosIotBridgeActionClient()
+	# Constructor
+	def __init__(self):
+		self._ac = actionlib.SimpleActionClient('/action_turtle',
+												msgTurtleAction)
+		self._ac.wait_for_server()
+		rospy.loginfo("Action server is up, we can send new goals!")
+		self._curr_goal_done = 1
+		self._result = msgRosIotResult()
+		self.ros_iot_client = RosIotBridgeActionClient()
 
-    # Function to send Goals to Action Servers
-    def send_goal(self, arg_dis, arg_angle):
-        
-        # Create Goal message for Simple Action Server
-        goal = msgTurtleGoal(distance=arg_dis, angle=arg_angle)
-        
-        '''
-            * done_cb is set to the function pointer of the function which should be called once 
-                the Goal is processed by the Simple Action Server.
+	# Function to send Goals to Action Servers
+	def send_goal(self, arg_dis, arg_angle):
 
-            * feedback_cb is set to the function pointer of the function which should be called while
-                the goal is being processed by the Simple Action Server.
-        ''' 
-        self._ac.send_goal(goal, done_cb=self.done_callback,
-                           feedback_cb=self.feedback_callback)
-        self._curr_goal_done = 0
-        rospy.loginfo("Goal has been sent.")
+		# Create Goal message for Simple Action Server
+		goal = msgTurtleGoal(distance=arg_dis, angle=arg_angle)
 
-    # Function print result on Goal completion
-    def done_callback(self, status, result):
-        rospy.loginfo("Status is : " + str(status))
-        rospy.loginfo("Result is : " + str(result))
-        self._result = result
-        self._curr_goal_done = 1
+		'''
+			* done_cb is set to the function pointer of the function which should be called once 
+				the Goal is processed by the Simple Action Server.
 
-    # Function to print feedback while Goal is being processed
-    def feedback_callback(self, feedback):
-        rospy.loginfo(feedback)
+			* feedback_cb is set to the function pointer of the function which should be called while
+				the goal is being processed by the Simple Action Server.
+		'''
+		self._ac.send_goal(goal, done_cb=self.done_callback,
+						   feedback_cb=self.feedback_callback)
+		self._curr_goal_done = 0
+		rospy.loginfo("Goal has been sent.")
 
-    def iot_cmd_callback(self, msgMqttSub):
-        print(msgMqttSub)
-        if msgMqttSub.message == 'start':
-            self.send_goal(2, 0)
-            self.wait_till_pub_result_mqtt()
-            for i in range(5):
-                self.send_goal(2, 60)
-                self.wait_till_pub_result_mqtt()
-    
-    def pub_result_mqtt(self, index):
-        final_x = self._result.final_x
-        final_y = self._result.final_y
-        final_theta = self._result.final_theta
-        goal_handle = self.ros_iot_client.send_goal("mqtt", "pub", self.ros_iot_client._config_mqtt_pub_topic, str((final_x, final_y, final_theta)))
-        self.ros_iot_client._goal_handles[str(index)] = goal_handle
+	# Function print result on Goal completion
+	def done_callback(self, status, result):
+		rospy.loginfo("Status is : " + str(status))
+		rospy.loginfo("Result is : " + str(result))
+		self._result = result
+		self._curr_goal_done = 1
 
-    def update_sheet_http(self, index):
-        message = {'turtle_x': self._result.final_x, 'turtle_y':self._result.final_y, 'turtle_theta':self._result.final_theta}
-        goal_handle = self.ros_iot_client.send_goal("http", "get", '' , str(message))
-        self.ros_iot_client._goal_handles[str(index)] = goal_handle
-    
-    def wait_till_done(self):
-        while not self._curr_goal_done:
-            pass
+	# Function to print feedback while Goal is being processed
+	def feedback_callback(self, feedback):
+		rospy.loginfo(feedback)
 
-    def wait_till_pub_result_mqtt(self):
-        self.wait_till_done()
-        self.pub_result_mqtt(1)
-        self.update_sheet_http(2)
-        #self.ros_iot_client.wait_till_done()
+	def iot_cmd_callback(self, msgMqttSub):
+		print(msgMqttSub)
+		if msgMqttSub.message == 'start':
+			self.send_goal(2, 0)
+			self.wait_till_done_and_pub_result()
+			for i in range(5):
+				self.send_goal(2, 60)
+				self.wait_till_done_and_pub_result()
+
+	def pub_result_mqtt(self, index):
+		final_x = self._result.final_x
+		final_y = self._result.final_y
+		final_theta = self._result.final_theta
+		goal_handle = self.ros_iot_client.send_goal("mqtt", "pub", self.ros_iot_client._config_mqtt_pub_topic,
+													str((final_x, final_y, final_theta)))
+		self.ros_iot_client._goal_handles[str(index)] = goal_handle
+
+	# This function sends the goal to ros_iot bridge server to update spreadsheet
+	def update_sheet_http(self, index):
+		message = {'turtle_x': self._result.final_x, 'turtle_y': self._result.final_y,
+				   'turtle_theta': self._result.final_theta}
+		goal_handle = self.ros_iot_client.send_goal("http", "get", '', str(message))
+		self.ros_iot_client._goal_handles[str(index)] = goal_handle
+
+	# This function will exit only when sent goal is done
+	def wait_till_gole_done(self):
+		while not self._curr_goal_done:
+			pass
+
+	# This function will wait till the sent goal is done then sends the goal to publish and update the spreadsheet
+	def wait_till_done_and_pub_result(self):
+
+		self.wait_till_gole_done()
+		self.pub_result_mqtt(1)
+		self.update_sheet_http(2)
 
 
 class RosIotBridgeActionClient:
 
-    # Constructor
-    def __init__(self):
+	# Constructor
+	def __init__(self):
 
-        # Initialize Action Client
-        self._ac = actionlib.ActionClient('/action_ros_iot',
-                                          msgRosIotAction)
-        
-        # Dictionary to Store all the goal handels
-        self._goal_handles = {}
+		# Initialize Action Client
+		self._ac = actionlib.ActionClient('/action_ros_iot',
+										  msgRosIotAction)
 
-        # Store the MQTT Topic on which to Publish in a variable
-        param_config_iot = rospy.get_param('config_iot')
-        self._config_mqtt_pub_topic = param_config_iot['mqtt']['topic_pub']
+		# Dictionary to Store all the goal handels
+		self._goal_handles = {}
 
-        # Wait for Action Server that will use the action - '/action_ros_iot' to start
-        self._ac.wait_for_server()
-        rospy.loginfo("Action server up, we can send goals.")
-        self._curr_goal_done = 0
-    
-    # This function will be called when there is a change of state in the Action Client State Machine
-    def on_transition(self, goal_handle):
-        
-        # from on_goal() to on_transition(). goal_handle generated by send_goal() is used here.
-        
-        result = msgRosIotResult()
+		# Store the MQTT Topic on which to Publish in a variable
+		param_config_iot = rospy.get_param('config_iot')
+		self._config_mqtt_pub_topic = param_config_iot['mqtt']['topic_pub']
 
-        index = 0
-        for i in self._goal_handles:
-            if self._goal_handles[i] == goal_handle:
-                index = i
-                break
+		# Wait for Action Server that will use the action - '/action_ros_iot' to start
+		self._ac.wait_for_server()
+		rospy.loginfo("Action server up, we can send goals.")
 
-        rospy.loginfo("Transition Callback. Client Goal Handle #: " + str(index))
-        rospy.loginfo("Comm. State: " + str(goal_handle.get_comm_state()) )
-        rospy.loginfo("Goal Status: " + str(goal_handle.get_goal_status()) )
-        
-        # Comm State - Monitors the State Machine of the Client which is different from Server's
-        # Comm State = 2 -> Active
-        # Comm State = 3 -> Wating for Result
-        # Comm State = 7 -> Done
-        
-        # if (Comm State == ACTIVE)
-        if goal_handle.get_comm_state() == 2:
-            rospy.loginfo(str(index) + ": Goal just went active.")
-        
-        # if (Comm State == DONE)
-        if goal_handle.get_comm_state() == 7:
-            rospy.loginfo(str(index) + ": Goal is DONE")
-            rospy.loginfo(goal_handle.get_terminal_state())
-            
-            # get_result() gets the result produced by the Action Server
-            result = goal_handle.get_result()
-            rospy.loginfo(result.flag_success)
+	# This function will be called when there is a change of state in the Action Client State Machine
+	def on_transition(self, goal_handle):
 
-            if (result.flag_success == True):
-                self._curr_goal_done = 1
-                rospy.loginfo("Goal successfully completed. Client Goal Handle #: " + str(index))
-            else:
-                rospy.loginfo("Goal failed. Client Goal Handle #: " + str(index))
+		# from on_goal() to on_transition(). goal_handle generated by send_goal() is used here.
 
+		result = msgRosIotResult()
 
-    # This function is used to send Goals to Action Server
-    def send_goal(self, arg_protocol, arg_mode, arg_topic, arg_message):
-        # Create a Goal Message object
-        goal = msgRosIotGoal()
+		index = 0
+		for i in self._goal_handles:
+			if self._goal_handles[i] == goal_handle:
+				index = i
+				break
 
-        goal.protocol = arg_protocol
-        goal.mode = arg_mode
-        goal.topic = arg_topic
-        goal.message = arg_message
+		rospy.loginfo("Transition Callback. Client Goal Handle #: " + str(index))
+		rospy.loginfo("Comm. State: " + str(goal_handle.get_comm_state()))
+		rospy.loginfo("Goal Status: " + str(goal_handle.get_goal_status()))
 
-        rospy.loginfo("Send goal.")
-        
-        # self.on_transition - It is a function pointer to a function which will be called when 
-        #                       there is a change of state in the Action Client State Machine
-        goal_handle = self._ac.send_goal(goal,
-                                         self.on_transition,
-                                         None)
+		# Comm State - Monitors the State Machine of the Client which is different from Server's
+		# Comm State = 2 -> Active
+		# Comm State = 3 -> Wating for Result
+		# Comm State = 7 -> Done
 
-        self._curr_goal_done = 0
-        return goal_handle
+		# if (Comm State == ACTIVE)
+		if goal_handle.get_comm_state() == 2:
+			rospy.loginfo(str(index) + ": Goal just went active.")
 
-    #def wait_till_done(self):
-    #    while not self._curr_goal_done:
-    #        pass
+		# if (Comm State == DONE)
+		if goal_handle.get_comm_state() == 7:
+			rospy.loginfo(str(index) + ": Goal is DONE")
+			rospy.loginfo(goal_handle.get_terminal_state())
+
+			# get_result() gets the result produced by the Action Server
+			result = goal_handle.get_result()
+			rospy.loginfo(result.flag_success)
+
+			if result.flag_success == True:
+				rospy.loginfo("Goal successfully completed. Client Goal Handle #: " + str(index))
+			else:
+				rospy.loginfo("Goal failed. Client Goal Handle #: " + str(index))
+
+	# This function is used to send Goals to Action Server
+	def send_goal(self, arg_protocol, arg_mode, arg_topic, arg_message):
+		# Create a Goal Message object
+		goal = msgRosIotGoal()
+
+		goal.protocol = arg_protocol
+		goal.mode = arg_mode
+		goal.topic = arg_topic
+		goal.message = arg_message
+
+		rospy.loginfo("Send goal.")
+
+		# self.on_transition - It is a function pointer to a function which will be called when 
+		#                       there is a change of state in the Action Client State Machine
+		goal_handle = self._ac.send_goal(goal,
+										 self.on_transition,
+										 None)
+
+		return goal_handle
 
 
 # Main Function
 def main():
-    # 1. Initialize ROS Node
-    rospy.init_node('node_simple_action_client_turtle')
+	# 1. Initialize ROS Node
+	rospy.init_node('node_iot_action_client_turtle')
 
-    # 2. Create a object for Simple Action Client.
-    simple_client = SimpleActionClientTurtle()
+	# 2. Create a object for Simple Action Client.
+	simple_client = SimpleActionClientTurtle()
 
-    rospy.Subscriber('/ros_iot_bridge/mqtt/sub', msgMqttSub, simple_client.iot_cmd_callback)
+	rospy.Subscriber('/ros_iot_bridge/mqtt/sub', msgMqttSub, simple_client.iot_cmd_callback)
 
-    # 3. Send Goals to Draw a polygon
-    
-    # simple_client.send_goal(2, 0)
-    # simple_client.wait_till_pub_result_mqtt()
-    # for i in range(5):
-    #     simple_client.send_goal(2, 60)
-    #     simple_client.wait_till_pub_result_mqtt()
-
-    # simple_client.send_goal(2, 60)
-    # rospy.sleep(10)
-
-    # simple_client.send_goal(2, 60)
-    # rospy.sleep(10)
-
-    # simple_client.send_goal(2, 60)
-
-    # 4. Loop forever
-    rospy.spin()
+	rospy.spin()
 
 
 if __name__ == '__main__':
-    main()
-
+	main()

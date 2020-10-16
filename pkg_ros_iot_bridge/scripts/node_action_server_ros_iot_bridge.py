@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 
-# ROS Node - Action Server - IoT ROS Bridge
+# ROS Node - Action Server - ROS IoT Bridge
 
+import threading
 import rospy
 import actionlib
-import threading
 
-from pkg_ros_iot_bridge.msg import msgRosIotAction      # Message Class that is used by ROS Actions internally
-from pkg_ros_iot_bridge.msg import msgRosIotGoal        # Message Class that is used for Goal Messages
-from pkg_ros_iot_bridge.msg import msgRosIotResult      # Message Class that is used for Result Messages
-from pkg_ros_iot_bridge.msg import msgRosIotFeedback    # Message Class that is used for Feedback Messages
+from pkg_ros_iot_bridge.msg import msgRosIotAction  # Message Class that is used by ROS Actions internally
+from pkg_ros_iot_bridge.msg import msgRosIotGoal  # Message Class that is used for Goal Messages
+from pkg_ros_iot_bridge.msg import msgRosIotResult  # Message Class that is used for Result Messages
+from pkg_ros_iot_bridge.msg import msgRosIotFeedback  # Message Class that is used for Feedback Messages
 
-from pkg_ros_iot_bridge.msg import msgMqttSub           # Message Class for MQTT Subscription Messages
+from pkg_ros_iot_bridge.msg import msgMqttSub  # Message Class for MQTT Subscription Messages
 
-from pyiot import iot                                   # Custom Python Module to perfrom MQTT Tasks
+from pyiot import iot  # Custom Python Module to perfrom MQTT Tasks
 
 
 class IotRosBridgeActionServer:
@@ -45,38 +45,41 @@ class IotRosBridgeActionServer:
 		self._config_mqtt_sub_cb_ros_topic = param_config_iot['mqtt']['sub_cb_ros_topic']
 		self._config_spread_sheet_id = param_config_iot['google_apps']['spread_sheet_id']
 		self._config_sheet_name = 'task1'
-		print(param_config_iot)
+		self._config_my_spread_sheet_id = "AKfycbyfj6ZQSCxddxTHoFAy1L-CADEMl_X6psDD3tsIZ_XHUEVdIoA"
+		self._config_my_sheet_name = 'task1'
 
+		
+		print('\n\nPushing data on Spreadsheet ID : {} \n Sheet Name : {} '.format(self._config_spread_sheet_id, self._config_sheet_name))
+		print('Pushing data on Spreadsheet ID : {} \n Sheet Name : {} \n\n'.format(self._config_my_spread_sheet_id, self._config_my_sheet_name))
+		print('\n\nPublish msg as "start" on  : {}'.format(self._config_mqtt_sub_topic))
+		print('Subscribe to receive result on : {}\n'.format(self._config_mqtt_pub_topic))
 
 		# Initialize ROS Topic Publication_config_mqtt_sub_cb_ros_topic
 		# Incoming message from MQTT Subscription will be published on a ROS Topic (/ros_iot_bridge/mqtt/sub).
 		# ROS Nodes can subscribe to this ROS Topic (/ros_iot_bridge/mqtt/sub) to get messages from MQTT Subscription.
 		self._handle_ros_pub = rospy.Publisher(self._config_mqtt_sub_cb_ros_topic, msgMqttSub, queue_size=10)
 
-
-		# Subscribe to MQTT Topic (eyrc/xYzqLm/iot_to_ros) which is defined in 'config_iot_ros.yaml'.
+		# Subscribe to MQTT Topic (eyrc/xYzqLm/iot_to_ros) which is defined in 'config_pyiot.yaml'.
 		# self.mqtt_sub_callback() function will be called when there is a message from MQTT Subscription.
-		ret = iot.mqtt_subscribe_thread_start(  self.mqtt_sub_callback, 
-														self._config_mqtt_server_url, 
-														self._config_mqtt_server_port, 
-														self._config_mqtt_sub_topic, 
-														self._config_mqtt_qos   )
-		if(ret == 0):
+		ret = iot.mqtt_subscribe_thread_start(self.mqtt_sub_callback,
+											  self._config_mqtt_server_url,
+											  self._config_mqtt_server_port,
+											  self._config_mqtt_sub_topic,
+											  self._config_mqtt_qos)
+		if (ret == 0):
 			rospy.loginfo("MQTT Subscribe Thread Started")
 		else:
 			rospy.logerr("Failed to start MQTT Subscribe Thread")
 
-
 		# Start the Action Server
 		self._as.start()
-		
+
 		rospy.loginfo("Started ROS-IoT Bridge Action Server.")
 
-	
 	# This is a callback function for MQTT Subscriptions
 	def mqtt_sub_callback(self, client, userdata, message):
 		payload = str(message.payload.decode("utf-8"))
-	
+
 		print("[MQTT SUB CB] Message: ", payload)
 		print("[MQTT SUB CB] Topic: ", message.topic)
 
@@ -84,10 +87,9 @@ class IotRosBridgeActionServer:
 		msg_mqtt_sub.timestamp = rospy.Time.now()
 		msg_mqtt_sub.topic = message.topic
 		msg_mqtt_sub.message = payload
-		
+
 		self._handle_ros_pub.publish(msg_mqtt_sub)
-	
-	
+
 	# This function will be called when Action Server receives a Goal
 	def on_goal(self, goal_handle):
 		goal = goal_handle.get_goal()
@@ -96,36 +98,35 @@ class IotRosBridgeActionServer:
 		rospy.loginfo(goal)
 
 		# Validate incoming goal parameters
-		if(goal.protocol == "mqtt"):
-			
-			if((goal.mode == "pub") or (goal.mode == "sub")):
+		if goal.protocol == "mqtt":
+
+			if (goal.mode == "pub") or (goal.mode == "sub"):
 				goal_handle.set_accepted()
-				
+
 				# Start a new thread to process new goal from the client (For Asynchronous Processing of Goals)
 				# 'self.process_goal' - is the function pointer which points to a function that will process incoming Goals
-				thread = threading.Thread(  name="worker",
-											target=self.process_goal,
-											args=(goal_handle,) )
+				thread = threading.Thread(name="worker",
+										  target=self.process_goal,
+										  args=(goal_handle,))
 				thread.start()
 
 			else:
 				goal_handle.set_rejected()
 				return
 
-		elif(goal.protocol == 'http'):
-			if((goal.mode == "get") or (goal.mode == "post")):
+		elif goal.protocol == 'http':
+			if (goal.mode == "get") or (goal.mode == "post"):
 				goal_handle.set_accepted()
-				
+
 				# Start a new thread to process new goal from the client (For Asynchronous Processing of Goals)
 				# 'self.process_goal' - is the function pointer which points to a function that will process incoming Goals
-				thread = threading.Thread(  name="worker",
-											target=self.process_goal,
-											args=(goal_handle,) )
-				thread.start()	
+				thread = threading.Thread(name="worker",
+										  target=self.process_goal,
+										  args=(goal_handle,))
+				thread.start()
 		else:
 			goal_handle.set_rejected()
 			return
-
 
 	# This function is called is a separate thread to process Goal.
 	def process_goal(self, goal_handle):
@@ -138,70 +139,74 @@ class IotRosBridgeActionServer:
 
 		goal = goal_handle.get_goal()
 
-		
 		# Goal Processing
-		if(goal.protocol == "mqtt"):
+		if goal.protocol == "mqtt":
 			rospy.logwarn("MQTT")
 
-			if(goal.mode == "pub"):
+			if goal.mode == "pub":
 				rospy.logwarn("MQTT PUB Goal ID: " + str(goal_id.id))
 
 				rospy.logwarn(goal.topic + " > " + goal.message)
 
-				ret = iot.mqtt_publish( self._config_mqtt_server_url, 
-										self._config_mqtt_server_port,
-										goal.topic, 
-										goal.message, 
-										self._config_mqtt_qos   )
+				ret = iot.mqtt_publish(self._config_mqtt_server_url,
+									   self._config_mqtt_server_port,
+									   goal.topic,
+									   goal.message,
+									   self._config_mqtt_qos)
 
-				if(ret == 0):
+				if ret == 0:
 					rospy.loginfo("MQTT Publish Successful.")
 					result.flag_success = True
 				else:
 					rospy.logerr("MQTT Failed to Publish")
 					result.flag_success = False
 
-			elif(goal.mode == "sub"):
+			elif goal.mode == "sub":
 				rospy.logwarn("MQTT SUB Goal ID: " + str(goal_id.id))
 				rospy.logwarn(goal.topic)
 
-				ret = iot.mqtt_subscribe_thread_start(  self.mqtt_sub_callback, 
-														self._config_mqtt_server_url, 
-														self._config_mqtt_server_port, 
-														goal.topic, 
-														self._config_mqtt_qos   )
-				if(ret == 0):
+				ret = iot.mqtt_subscribe_thread_start(self.mqtt_sub_callback,
+													  self._config_mqtt_server_url,
+													  self._config_mqtt_server_port,
+													  goal.topic,
+													  self._config_mqtt_qos)
+				if ret == 0:
 					rospy.loginfo("MQTT Subscribe Thread Started")
 					result.flag_success = True
 				else:
 					rospy.logerr("Failed to start MQTT Subscribe Thread")
 					result.flag_success = False
-		
-		elif (goal.protocol == "http"):
+
+		elif goal.protocol == "http":
 			rospy.logwarn("HTTP")
-			if(goal.mode == "get"):
+			if goal.mode == "get":
 				rospy.logwarn("HTTP GET Goal ID: " + str(goal_id.id))
 
 				rospy.logwarn(goal.topic + " > " + goal.message)
 
-				# update_spreadsheet((spreadsheet_id, id, 'team_id', 'unique_id', '{'turtle_x': , 'turtle_y':, 'turtle_theta': }' ),....)
-				ret = iot.update_spreadsheet( (self._config_spread_sheet_id,
-										self._config_sheet_name,
-										1823,  # hardcoded team id ;)
-										'EsNEciqV',  # hardcoded unique id ;) 
-										goal.message) )
+				# update_spreadsheet(spreadsheet_id, id, 'team_id', 'unique_id', '{'turtle_x': x, 'turtle_y': y, 'turtle_theta': theta,...,..}')
+				ret_eyrc = iot.update_spreadsheet(self._config_spread_sheet_id,
+											  self._config_sheet_name,
+											  1823,  # hardcoded team id ;)
+											  'EsNEciqV',  # hardcoded unique id ;)
+											  goal.message # data points with column names in dict format str
+											)
+				ret_my = iot.update_spreadsheet(self._config_my_spread_sheet_id,
+											  self._config_my_sheet_name,
+											  1823,  # hardcoded team id ;)
+											  'EsNEciqV',  # hardcoded unique id ;)
+											  goal.message # data points with column names in dict format str
+											)
 
-				if(ret == 0):
-					rospy.loginfo("Updating Spreadsheet Successful.")
+				if ret_eyrc == 0:
+					rospy.loginfo("Updating eyrc Spreadsheet Successful.")
 					result.flag_success = True
 				else:
-					rospy.logerr("Updating Spreadsheet Failed")
+					rospy.logerr("Updating eyrc Spreadsheet Failed")
 					result.flag_success = False
 
-
-
 		rospy.loginfo("Send goal result to client")
-		if (result.flag_success == True):
+		if result.flag_success == True:
 			rospy.loginfo("Succeeded")
 			goal_handle.set_succeeded(result)
 		else:
@@ -210,7 +215,6 @@ class IotRosBridgeActionServer:
 
 		rospy.loginfo("Goal ID: " + str(goal_id.id) + " Goal Processing Done.")
 
-	
 	# This function will be called when Goal Cancel request is send to the Action Server
 	def on_cancel(self, goal_handle):
 		rospy.loginfo("Received cancel request.")
@@ -219,12 +223,11 @@ class IotRosBridgeActionServer:
 
 # Main
 def main():
-	rospy.init_node('node_iot_ros_bridge_action_server')
+	rospy.init_node('node_action_server_ros_iot_bridge')
 
 	action_server = IotRosBridgeActionServer()
 
 	rospy.spin()
-
 
 
 if __name__ == '__main__':

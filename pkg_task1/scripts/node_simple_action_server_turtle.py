@@ -17,180 +17,180 @@ from pkg_task1.msg import msgTurtleFeedback     # Message Class that is used for
 
 
 class SimpleActionServerTurtle:
-    
-    # Constructor
-    def __init__(self):
 
-        # Initialize Simple Action Server
-        self._sas = actionlib.SimpleActionServer('/action_turtle',
-                                                 msgTurtleAction,
-                                                 execute_cb=self.func_on_rx_goal,
-                                                 auto_start=False)
-        '''
-        * '/action_turtle' - The name of the action that will be used by ROS Nodes to communicate with this Simple Action Server.
-        * msgTurtleAction - The Message Class that is used by ROS Actions internally for this Simple Action Server
-        * execute_cb - Holds the function pointer to the function which will process incoming Goals from Simple Action Clients.
-        * auto_start = False - Only when self._sas.start() will be called then only this Simple Action Server will start.
-        '''
+	# Constructor
+	def __init__(self):
 
-        # Declare constants
-        self._config_ros_pub_topic = '/turtle1/cmd_vel'
-        self._config_ros_sub_topic = '/turtle1/pose'
-        self._config_rate = 15
+		# Initialize Simple Action Server
+		self._sas = actionlib.SimpleActionServer('/action_turtle',
+												 msgTurtleAction,
+												 execute_cb=self.func_on_rx_goal,
+												 auto_start=False)
+		'''
+		* '/action_turtle' - The name of the action that will be used by ROS Nodes to communicate with this Simple Action Server.
+		* msgTurtleAction - The Message Class that is used by ROS Actions internally for this Simple Action Server
+		* execute_cb - Holds the function pointer to the function which will process incoming Goals from Simple Action Clients.
+		* auto_start = False - Only when self._sas.start() will be called then only this Simple Action Server will start.
+		'''
 
-        # Declare variables
-        self._curr_x = 0
-        self._curr_y = 0
-        self._curr_theta = 0
+		# Declare constants
+		self._config_ros_pub_topic = '/turtle1/cmd_vel'
+		self._config_ros_sub_topic = '/turtle1/pose'
+		self._config_rate = 15
 
-        # Start the Action Server
-        self._sas.start()
-        rospy.loginfo("Started Turtle Simple Action Server.")
+		# Declare variables
+		self._curr_x = 0
+		self._curr_y = 0
+		self._curr_theta = 0
 
-    #-------------------------------------------------------
-    # Callback Function for ROS Topic ('/turtle1/pose') Subscription
-    def func_ros_sub_callback(self, pose_message):
-        self._curr_x = pose_message.x
-        self._curr_y = pose_message.y
-        self._curr_theta = pose_message.theta
+		# Start the Action Server
+		self._sas.start()
+		rospy.loginfo("Started Turtle Simple Action Server.")
 
-    #-------------------------------------------------------
-    # Function to move the turtle in turtlesim_node straight
-    def func_move_straight(self, param_dis, param_speed, param_dir):
+	#-------------------------------------------------------
+	# Callback Function for ROS Topic ('/turtle1/pose') Subscription
+	def func_ros_sub_callback(self, pose_message):
+		self._curr_x = pose_message.x
+		self._curr_y = pose_message.y
+		self._curr_theta = pose_message.theta
 
-        obj_velocity_mssg = Twist()
-        obj_pose_mssg = Pose()
+	#-------------------------------------------------------
+	# Function to move the turtle in turtlesim_node straight
+	def func_move_straight(self, param_dis, param_speed, param_dir):
 
-        # Store the start position of the turtle
-        start_x = self._curr_x
-        start_y = self._curr_y
+		obj_velocity_mssg = Twist()
+		obj_pose_mssg = Pose()
 
-        # Move the turtle till it reaches the desired position by publishing to Velocity topic
-        handle_pub_vel = rospy.Publisher(
-            self._config_ros_pub_topic, Twist, queue_size=10)
+		# Store the start position of the turtle
+		start_x = self._curr_x
+		start_y = self._curr_y
 
-        var_loop_rate = rospy.Rate(self._config_rate)
+		# Move the turtle till it reaches the desired position by publishing to Velocity topic
+		handle_pub_vel = rospy.Publisher(
+			self._config_ros_pub_topic, Twist, queue_size=10)
 
-        # Set the Speed of the Turtle according to the direction
-        if(param_dir == 'b'):
-            obj_velocity_mssg.linear.x = (-1) * abs(int(param_speed))
-        else:
-            obj_velocity_mssg.linear.x = abs(int(param_speed))
+		var_loop_rate = rospy.Rate(self._config_rate)
 
-        # Move till desired distance is covered
-        dis_moved = 0.0
+		# Set the Speed of the Turtle according to the direction
+		if param_dir == 'b':
+			obj_velocity_mssg.linear.x = (-1) * abs(int(param_speed))
+		else:
+			obj_velocity_mssg.linear.x = abs(int(param_speed))
 
-        while not rospy.is_shutdown():
+		# Move till desired distance is covered
+		dis_moved = 0.0
 
-            # Send feedback to the client
-            obj_msg_feedback = msgTurtleFeedback()
+		while not rospy.is_shutdown():
 
-            obj_msg_feedback.cur_x = self._curr_x
-            obj_msg_feedback.cur_y = self._curr_y
-            obj_msg_feedback.cur_theta = self._curr_theta
+			# Send feedback to the client
+			obj_msg_feedback = msgTurtleFeedback()
 
-            self._sas.publish_feedback(obj_msg_feedback)
+			obj_msg_feedback.cur_x = self._curr_x
+			obj_msg_feedback.cur_y = self._curr_y
+			obj_msg_feedback.cur_theta = self._curr_theta
 
-            if ((dis_moved < param_dis)):
-                handle_pub_vel.publish(obj_velocity_mssg)
+			self._sas.publish_feedback(obj_msg_feedback)
 
-                var_loop_rate.sleep()
+			if dis_moved < param_dis:
+				handle_pub_vel.publish(obj_velocity_mssg)
 
-                dis_moved = abs(
-                    math.sqrt(((self._curr_x - start_x) ** 2) + ((self._curr_y - start_y) ** 2)))
-                print('Distance Moved: {}'.format(dis_moved))
-            else:
-                break
+				var_loop_rate.sleep()
 
-        # Stop the Turtle after desired distance is covered
-        obj_velocity_mssg.linear.x = 0
-        handle_pub_vel.publish(obj_velocity_mssg)
-        print('Destination Reached')
+				dis_moved = abs(
+					math.sqrt(((self._curr_x - start_x) ** 2) + ((self._curr_y - start_y) ** 2)))
+				print('Distance Moved: {}'.format(dis_moved))
+			else:
+				break
 
-    #-------------------------------------------------------
-    # Function to rotate the turtle in turtlesim_node
-    def func_rotate(self, param_degree, param_speed, param_dir):
+		# Stop the Turtle after desired distance is covered
+		obj_velocity_mssg.linear.x = 0
+		handle_pub_vel.publish(obj_velocity_mssg)
+		print('Destination Reached')
 
-        obj_velocity_mssg = Twist()
-        obj_pose_mssg = Pose()
+	#-------------------------------------------------------
+	# Function to rotate the turtle in turtlesim_node
+	def func_rotate(self, param_degree, param_speed, param_dir):
 
-        # Store start Theta of the turtle
-        start_degree = abs(math.degrees(self._curr_theta))
-        current_degree = abs(math.degrees(self._curr_theta))
+		obj_velocity_mssg = Twist()
+		obj_pose_mssg = Pose()
 
-        # Rotate the turtle till desired angle is reached
-        handle_pub_vel = rospy.Publisher(
-            self._config_ros_pub_topic, Twist, queue_size=10)
+		# Store start Theta of the turtle
+		start_degree = abs(math.degrees(self._curr_theta))
+		current_degree = abs(math.degrees(self._curr_theta))
 
-        var_loop_rate = rospy.Rate(self._config_rate)
+		# Rotate the turtle till desired angle is reached
+		handle_pub_vel = rospy.Publisher(
+			self._config_ros_pub_topic, Twist, queue_size=10)
 
-        # Set the speed of rotation according to param_dir
-        if(param_dir == 'a'):
-            obj_velocity_mssg.angular.z = math.radians(
-                abs(int(param_speed)))  # Anticlockwise
-        else:
-            # Clockwise
-            obj_velocity_mssg.angular.z = (-1) * \
-                math.radians(abs(int(param_speed)))
+		var_loop_rate = rospy.Rate(self._config_rate)
 
-        # Rotate till desired angle is reached
-        degree_rotated = 0.0
+		# Set the speed of rotation according to param_dir
+		if(param_dir == 'a'):
+			obj_velocity_mssg.angular.z = math.radians(
+				abs(int(param_speed)))  # Anticlockwise
+		else:
+			# Clockwise
+			obj_velocity_mssg.angular.z = (-1) * \
+										  math.radians(abs(int(param_speed)))
 
-        while not rospy.is_shutdown():
-            if((round(degree_rotated) < param_degree)):
-                handle_pub_vel.publish(obj_velocity_mssg)
+		# Rotate till desired angle is reached
+		degree_rotated = 0.0
 
-                var_loop_rate.sleep()
+		while not rospy.is_shutdown():
+			if round(degree_rotated) < param_degree:
+				handle_pub_vel.publish(obj_velocity_mssg)
 
-                current_degree = abs(math.degrees(self._curr_theta))
-                degree_rotated = abs(current_degree - start_degree)
-                print('Degree Rotated: {}'.format(degree_rotated))
-            else:
-                break
+				var_loop_rate.sleep()
 
-        # Stop the Turtle after the desired angle is reached
-        obj_velocity_mssg.angular.z = 0
-        handle_pub_vel.publish(obj_velocity_mssg)
-        print('Angle Reached')
+				current_degree = abs(math.degrees(self._curr_theta))
+				degree_rotated = abs(current_degree - start_degree)
+				print('Degree Rotated: {}'.format(degree_rotated))
+			else:
+				break
 
-    #-------------------------------------------------------
-    # Function to process Goals and send Results
-    def func_on_rx_goal(self, obj_msg_goal):
-        rospy.loginfo("Received a Goal from Client.")
-        rospy.loginfo(obj_msg_goal)
+		# Stop the Turtle after the desired angle is reached
+		obj_velocity_mssg.angular.z = 0
+		handle_pub_vel.publish(obj_velocity_mssg)
+		print('Angle Reached')
 
-        flag_success = False        # Set to True if Goal is successfully achieved
-        flag_preempted = False      # Set to True if Cancel req is sent by Client
+	#-------------------------------------------------------
+	# Function to process Goals and send Results
+	def func_on_rx_goal(self, obj_msg_goal):
+		rospy.loginfo("Received a Goal from Client.")
+		rospy.loginfo(obj_msg_goal)
 
-        # --- Goal Processing Section ---
-        self.func_rotate(obj_msg_goal.angle, '10', 'a')
-        self.func_move_straight(obj_msg_goal.distance, '1', 'f')
+		flag_success = False        # Set to True if Goal is successfully achieved
+		flag_preempted = False      # Set to True if Cancel req is sent by Client
 
-        # Send Result to the Client
-        obj_msg_result = msgTurtleResult()
-        obj_msg_result.final_x = self._curr_x
-        obj_msg_result.final_y = self._curr_y
-        obj_msg_result.final_theta = self._curr_theta
+		# --- Goal Processing Section ---
+		self.func_rotate(obj_msg_goal.angle, '10', 'a')
+		self.func_move_straight(obj_msg_goal.distance, '1', 'f')
 
-        rospy.loginfo("send goal result to client")
-        self._sas.set_succeeded(obj_msg_result)
+		# Send Result to the Client
+		obj_msg_result = msgTurtleResult()
+		obj_msg_result.final_x = self._curr_x
+		obj_msg_result.final_y = self._curr_y
+		obj_msg_result.final_theta = self._curr_theta
+
+		rospy.loginfo("send goal result to client")
+		self._sas.set_succeeded(obj_msg_result)
 
 
 
 # Main Function
 def main():
-    # 1. Initialize ROS Node
-    rospy.init_node('node_simple_action_server_turtle')
+	# 1. Initialize ROS Node
+	rospy.init_node('node_simple_action_server_turtle')
 
-    # 2. Create Simple Action Server object.
-    obj_server = SimpleActionServerTurtle()
+	# 2. Create Simple Action Server object.
+	obj_server = SimpleActionServerTurtle()
 
-    # 3. Subscribe to Pose of the Turtle
-    handle_sub_pose = rospy.Subscriber(obj_server._config_ros_sub_topic, Pose, obj_server.func_ros_sub_callback)
+	# 3. Subscribe to Pose of the Turtle
+	handle_sub_pose = rospy.Subscriber(obj_server._config_ros_sub_topic, Pose, obj_server.func_ros_sub_callback)
 
-    # 4. Do not exit and loop forever.
-    rospy.spin() 
+	# 4. Do not exit and loop forever.
+	rospy.spin()
 
 
 if __name__ == '__main__':
-    main()
+	main()

@@ -1,4 +1,4 @@
-# config_iot_ros.yaml 
+# config_pyiot.yaml 
 # IoT Configuration
 config_iot:
   mqtt:
