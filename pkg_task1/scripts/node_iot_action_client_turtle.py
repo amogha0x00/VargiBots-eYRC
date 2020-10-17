@@ -68,20 +68,18 @@ class SimpleActionClientTurtle:
 				self.send_goal(2, 60)
 				self.wait_till_done_and_pub_result()
 
-	def pub_result_mqtt(self, index):
+	def pub_result_mqtt(self):
 		final_x = self._result.final_x
 		final_y = self._result.final_y
 		final_theta = self._result.final_theta
 		goal_handle = self.ros_iot_client.send_goal("mqtt", "pub", self.ros_iot_client._config_mqtt_pub_topic,
 													str((final_x, final_y, final_theta)))
-		self.ros_iot_client._goal_handles[str(index)] = goal_handle
 
 	# This function sends the goal to ros_iot bridge server to update spreadsheet
-	def update_sheet_http(self, index):
+	def update_sheet_http(self):
 		message = {'turtle_x': self._result.final_x, 'turtle_y': self._result.final_y,
 				   'turtle_theta': self._result.final_theta}
 		goal_handle = self.ros_iot_client.send_goal("http", "get", '', str(message))
-		self.ros_iot_client._goal_handles[str(index)] = goal_handle
 
 	# This function will exit only when sent goal is done
 	def wait_till_gole_done(self):
@@ -92,8 +90,8 @@ class SimpleActionClientTurtle:
 	def wait_till_done_and_pub_result(self):
 
 		self.wait_till_gole_done()
-		self.pub_result_mqtt(1)
-		self.update_sheet_http(2)
+		self.pub_result_mqtt()
+		self.update_sheet_http()
 
 
 class RosIotBridgeActionClient:
@@ -105,8 +103,8 @@ class RosIotBridgeActionClient:
 		self._ac = actionlib.ActionClient('/action_ros_iot',
 										  msgRosIotAction)
 
-		# Dictionary to Store all the goal handels
-		self._goal_handles = {}
+		# list to Store all the goal handels
+		self._goal_handles = []
 
 		# Store the MQTT Topic on which to Publish in a variable
 		param_config_pyiot = rospy.get_param('config_pyiot')
@@ -123,12 +121,13 @@ class RosIotBridgeActionClient:
 
 		result = msgRosIotResult()
 
-		index = 0
-		for i in self._goal_handles:
-			if self._goal_handles[i] == goal_handle:
-				index = i
-				break
+		# index = 0
+		# for i in range(len(self._goal_handles)):
+		# 	if self._goal_handles[i] == goal_handle:
+		# 		index = i
+		# 		break
 
+		index = self._goal_handles.index(goal_handle)
 		rospy.loginfo("Transition Callback. Client Goal Handle #: " + str(index))
 		rospy.loginfo("Comm. State: " + str(goal_handle.get_comm_state()))
 		rospy.loginfo("Goal Status: " + str(goal_handle.get_goal_status()))
@@ -153,6 +152,8 @@ class RosIotBridgeActionClient:
 
 			if result.flag_success == True:
 				rospy.loginfo("Goal successfully completed. Client Goal Handle #: " + str(index))
+				# self._goal_handles.remove(goal_handle)
+				# rospy.loginfo("Client Goal Handle #: {} removed".format(index))
 			else:
 				rospy.loginfo("Goal failed. Client Goal Handle #: " + str(index))
 
@@ -173,7 +174,7 @@ class RosIotBridgeActionClient:
 		goal_handle = self._ac.send_goal(goal,
 										 self.on_transition,
 										 None)
-
+		self._goal_handles.append(goal_handle)
 		return goal_handle
 
 
