@@ -109,8 +109,8 @@ class RosIotBridgeActionClient:
 		self._goal_handles = {}
 
 		# Store the MQTT Topic on which to Publish in a variable
-		param_config_iot = rospy.get_param('config_iot')
-		self._config_mqtt_pub_topic = param_config_iot['mqtt']['topic_pub']
+		param_config_pyiot = rospy.get_param('config_pyiot')
+		self._config_mqtt_pub_topic = param_config_pyiot['mqtt']['topic_pub']
 
 		# Wait for Action Server that will use the action - '/action_ros_iot' to start
 		self._ac.wait_for_server()

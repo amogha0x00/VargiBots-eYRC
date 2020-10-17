@@ -36,16 +36,16 @@ class IotRosBridgeActionServer:
 		'''
 
 		# Read and Store IoT Configuration data from Parameter Server
-		param_config_iot = rospy.get_param('config_iot')
-		self._config_mqtt_server_url = param_config_iot['mqtt']['server_url']
-		self._config_mqtt_server_port = param_config_iot['mqtt']['server_port']
-		self._config_mqtt_sub_topic = param_config_iot['mqtt']['topic_sub']
-		self._config_mqtt_pub_topic = param_config_iot['mqtt']['topic_pub']
-		self._config_mqtt_qos = param_config_iot['mqtt']['qos']
-		self._config_mqtt_sub_cb_ros_topic = param_config_iot['mqtt']['sub_cb_ros_topic']
-		self._config_spread_sheet_id = param_config_iot['google_apps']['spread_sheet_id']
+		param_config_pyiot = rospy.get_param('config_pyiot')
+		self._config_mqtt_server_url = param_config_pyiot['mqtt']['server_url']
+		self._config_mqtt_server_port = param_config_pyiot['mqtt']['server_port']
+		self._config_mqtt_sub_topic = param_config_pyiot['mqtt']['topic_sub']
+		self._config_mqtt_pub_topic = param_config_pyiot['mqtt']['topic_pub']
+		self._config_mqtt_qos = param_config_pyiot['mqtt']['qos']
+		self._config_mqtt_sub_cb_ros_topic = param_config_pyiot['mqtt']['sub_cb_ros_topic']
+		self._config_spread_sheet_id = param_config_pyiot['google_apps']['spread_sheet_id']
 		self._config_sheet_name = 'task1'
-		self._config_my_spread_sheet_id = "AKfycbyfj6ZQSCxddxTHoFAy1L-CADEMl_X6psDD3tsIZ_XHUEVdIoA"
+		self._config_my_spread_sheet_id = "AKfycbzh5VbH9ZYzlebU6DCewMO3qq25OoGGEgvt_2nRbR0gtE5Cp5K0"
 		self._config_my_sheet_name = 'task1'
 
 		
