@@ -43,14 +43,11 @@ class IotRosBridgeActionServer:
 		self._config_mqtt_pub_topic = param_config_pyiot['mqtt']['topic_pub']
 		self._config_mqtt_qos = param_config_pyiot['mqtt']['qos']
 		self._config_mqtt_sub_cb_ros_topic = param_config_pyiot['mqtt']['sub_cb_ros_topic']
-		self._config_spread_sheet_id = param_config_pyiot['google_apps']['spread_sheet_id']
 		self._config_sheet_name = 'task1'
-		self._config_my_spread_sheet_id = "AKfycbzh5VbH9ZYzlebU6DCewMO3qq25OoGGEgvt_2nRbR0gtE5Cp5K0"
-		self._config_my_sheet_name = 'task1'
 
 		
-		print('\n\nPushing data on Spreadsheet ID : {} \n Sheet Name : {} '.format(self._config_spread_sheet_id, self._config_sheet_name))
-		print('Pushing data on Spreadsheet ID : {} \n Sheet Name : {} \n\n'.format(self._config_my_spread_sheet_id, self._config_my_sheet_name))
+		#print('\n\nPushing data on Spreadsheet ID : {} \n Sheet Name : {} '.format(self._config_spread_sheet_id, self._config_sheet_name))
+		#print('Pushing data on Spreadsheet ID : {} \n Sheet Name : {} \n\n'.format(self._config_my_spread_sheet_id, self._config_my_sheet_name))
 		print('\n\nPublish msg as "start" on  : {}'.format(self._config_mqtt_sub_topic))
 		print('Subscribe to receive result on : {}\n'.format(self._config_mqtt_pub_topic))
 
@@ -185,24 +182,18 @@ class IotRosBridgeActionServer:
 				rospy.logwarn(goal.topic + " > " + goal.message)
 
 				# update_spreadsheet(spreadsheet_id, id, 'team_id', 'unique_id', '{'turtle_x': x, 'turtle_y': y, 'turtle_theta': theta,...,..}')
-				ret_eyrc = iot.update_spreadsheet(self._config_spread_sheet_id,
+				ret = iot.update_spreadsheet(goal.topic, # using topic to send spreadsheet_id 
 											  self._config_sheet_name,
-											  1823,  # hardcoded team id ;)
-											  'EsNEciqV',  # hardcoded unique id ;)
-											  goal.message # data points with column names in dict format str
-											)
-				ret_my = iot.update_spreadsheet(self._config_my_spread_sheet_id,
-											  self._config_my_sheet_name,
-											  1823,  # hardcoded team id ;)
+											  'VB_1823',  # hardcoded team id ;)
 											  'EsNEciqV',  # hardcoded unique id ;)
 											  goal.message # data points with column names in dict format str
 											)
 
-				if ret_eyrc == 0:
-					rospy.loginfo("Updating eyrc Spreadsheet Successful.")
+				if ret == 0:
+					rospy.loginfo("Updating Spreadsheet Successful.")
 					result.flag_success = True
 				else:
-					rospy.logerr("Updating eyrc Spreadsheet Failed")
+					rospy.logerr("Updating Spreadsheet Failed")
 					result.flag_success = False
 
 		rospy.loginfo("Send goal result to client")

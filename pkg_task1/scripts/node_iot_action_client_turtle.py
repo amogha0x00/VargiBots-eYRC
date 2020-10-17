@@ -68,18 +68,18 @@ class SimpleActionClientTurtle:
 				self.send_goal(2, 60)
 				self.wait_till_done_and_pub_result()
 
-	def pub_result_mqtt(self):
+	def pub_result_mqtt(self, pub_topic):
 		final_x = self._result.final_x
 		final_y = self._result.final_y
 		final_theta = self._result.final_theta
-		goal_handle = self.ros_iot_client.send_goal("mqtt", "pub", self.ros_iot_client._config_mqtt_pub_topic,
+		goal_handle = self.ros_iot_client.send_goal("mqtt", "pub", pub_topic,
 													str((final_x, final_y, final_theta)))
 
 	# This function sends the goal to ros_iot bridge server to update spreadsheet
-	def update_sheet_http(self):
+	def update_spreadsheet_http(self, spread_sheet_id):
 		message = {'turtle_x': self._result.final_x, 'turtle_y': self._result.final_y,
 				   'turtle_theta': self._result.final_theta}
-		goal_handle = self.ros_iot_client.send_goal("http", "get", '', str(message))
+		goal_handle = self.ros_iot_client.send_goal("http", "get", spread_sheet_id, str(message))
 
 	# This function will exit only when sent goal is done
 	def wait_till_gole_done(self):
@@ -90,8 +90,9 @@ class SimpleActionClientTurtle:
 	def wait_till_done_and_pub_result(self):
 
 		self.wait_till_gole_done()
-		self.pub_result_mqtt()
-		self.update_sheet_http()
+		self.pub_result_mqtt(self.ros_iot_client._config_mqtt_pub_topic)
+		self.update_spreadsheet_http(self.ros_iot_client._config_spread_sheet_id)
+		self.update_spreadsheet_http(self.ros_iot_client._config_my_spread_sheet_id)
 
 
 class RosIotBridgeActionClient:
@@ -109,7 +110,8 @@ class RosIotBridgeActionClient:
 		# Store the MQTT Topic on which to Publish in a variable
 		param_config_pyiot = rospy.get_param('config_pyiot')
 		self._config_mqtt_pub_topic = param_config_pyiot['mqtt']['topic_pub']
-
+		self._config_spread_sheet_id = param_config_pyiot['google_apps']['spread_sheet_id']
+		self._config_my_spread_sheet_id = "AKfycbzh5VbH9ZYzlebU6DCewMO3qq25OoGGEgvt_2nRbR0gtE5Cp5K0"
 		# Wait for Action Server that will use the action - '/action_ros_iot' to start
 		self._ac.wait_for_server()
 		rospy.loginfo("Action server up, we can send goals.")
