@@ -25,10 +25,10 @@ class SimpleActionClientTurtle:
 		self._ac = actionlib.SimpleActionClient('/action_turtle',
 												msgTurtleAction)
 		self._ac.wait_for_server()
-		rospy.loginfo("Action server is up, we can send new goals!")
+		rospy.loginfo("Simple Action server is up, we can send new goals!")
 		self._curr_goal_done = 1
 		self._result = msgRosIotResult()
-		self.ros_iot_client = RosIotBridgeActionClient()
+		self.ros_iot_client = ActionClientRosIoTBridge()
 
 	# Function to send Goals to Action Servers
 	def send_goal(self, arg_dis, arg_angle):
@@ -95,7 +95,7 @@ class SimpleActionClientTurtle:
 		self.update_spreadsheet_http(self.ros_iot_client._config_my_spread_sheet_id)
 
 
-class RosIotBridgeActionClient:
+class ActionClientRosIoTBridge:
 
 	# Constructor
 	def __init__(self):
@@ -114,7 +114,7 @@ class RosIotBridgeActionClient:
 		self._config_my_spread_sheet_id = "AKfycbzh5VbH9ZYzlebU6DCewMO3qq25OoGGEgvt_2nRbR0gtE5Cp5K0"
 		# Wait for Action Server that will use the action - '/action_ros_iot' to start
 		self._ac.wait_for_server()
-		rospy.loginfo("Action server up, we can send goals.")
+		rospy.loginfo("Action server ROS Iot Bridge is up, we can send goals.")
 
 	# This function will be called when there is a change of state in the Action Client State Machine
 	def on_transition(self, goal_handle):

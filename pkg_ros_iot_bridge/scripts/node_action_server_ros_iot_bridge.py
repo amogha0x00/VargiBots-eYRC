@@ -16,7 +16,7 @@ from pkg_ros_iot_bridge.msg import msgMqttSub  # Message Class for MQTT Subscrip
 from pyiot import iot  # Custom Python Module to perfrom MQTT Tasks
 
 
-class IotRosBridgeActionServer:
+class ActionServerRosIoTBridge:
 
 	# Constructor
 	def __init__(self):
@@ -216,7 +216,7 @@ class IotRosBridgeActionServer:
 def main():
 	rospy.init_node('node_action_server_ros_iot_bridge')
 
-	action_server = IotRosBridgeActionServer()
+	action_server = ActionServerRosIoTBridge()
 
 	rospy.spin()
 
