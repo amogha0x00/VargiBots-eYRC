@@ -45,7 +45,7 @@ class ActionServerRosIoTBridge:
 		self._config_mqtt_sub_cb_ros_topic = param_config_pyiot['mqtt']['sub_cb_ros_topic']
 		self._config_sheet_name = 'task1'
 
-		
+
 		#print('\n\nPushing data on Spreadsheet ID : {} \n Sheet Name : {} '.format(self._config_spread_sheet_id, self._config_sheet_name))
 		#print('Pushing data on Spreadsheet ID : {} \n Sheet Name : {} \n\n'.format(self._config_my_spread_sheet_id, self._config_my_sheet_name))
 		print('\n\nPublish msg as "start" on  : {}'.format(self._config_mqtt_sub_topic))
@@ -63,7 +63,7 @@ class ActionServerRosIoTBridge:
 											  self._config_mqtt_server_port,
 											  self._config_mqtt_sub_topic,
 											  self._config_mqtt_qos)
-		if (ret == 0):
+		if ret == 0:
 			rospy.loginfo("MQTT Subscribe Thread Started")
 		else:
 			rospy.logerr("Failed to start MQTT Subscribe Thread")

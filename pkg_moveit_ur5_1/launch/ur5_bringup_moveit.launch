@@ -1,0 +1,32 @@
+<launch>
+
+<!-- Launch Gazebo  -->
+<include file="$(find pkg_vb_sim)/launch/task2_ur5_world.launch"/>
+
+<!-- trajectory control load -->
+
+<rosparam command="load" file="$(find pkg_moveit_ur5_1)/config/controllers.yaml"/>
+<rosparam file="$(find pkg_moveit_ur5_1)/config/trajectory_control.yaml" command="load"/>
+
+<!-- Spawning arm controller -->
+<node name="arm_controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+    output="screen" args="arm_controller"/>
+<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    <param name="use_gui" value="false"/>
+    <rosparam param="source_list">[/joint_states]</rosparam>
+    </node>
+
+<!-- <rosparam file="$(find pkg_moveit_ur5_1)/config/ur5_1_moveit_controllers.yaml"/> -->
+
+<!-- moveit launch file -->
+<include file="$(find pkg_moveit_ur5_1)/launch/move_group.launch">
+  <arg name="publish_monitored_planning_scene" value="true" />
+  <arg name="debug" value="false" />
+</include>      
+
+<include file="$(find pkg_moveit_ur5_1)/launch/moveit_rviz.launch">
+  <arg name="rviz_config" value="$(find pkg_moveit_ur5_1)/launch/moveit.rviz"/>
+  <arg name="debug" value="false"/>
+  </include>
+
+</launch>
