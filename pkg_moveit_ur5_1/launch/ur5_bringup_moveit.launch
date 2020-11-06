@@ -22,11 +22,13 @@
 <include file="$(find pkg_moveit_ur5_1)/launch/move_group.launch">
   <arg name="publish_monitored_planning_scene" value="true" />
   <arg name="debug" value="false" />
-</include>      
+</include>
 
 <include file="$(find pkg_moveit_ur5_1)/launch/moveit_rviz.launch">
   <arg name="rviz_config" value="$(find pkg_moveit_ur5_1)/launch/moveit.rviz"/>
   <arg name="debug" value="false"/>
   </include>
+<arg name="scene_file" default="$(find pkg_task2)/config/rviz/ur5_1_shelf.scene"/> 
+<node name = "moveit_publish_scene_from_text" pkg= "moveit_ros_planning" type = "moveit_publish_scene_from_text" args= "$(arg scene_file)"/>
 
 </launch>
