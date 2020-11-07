@@ -19,7 +19,7 @@ class Ur5Moveit:
 		rospy.init_node('node_eg3_set_joint_angles', anonymous=True)
 
 		self._planning_group = "ur5_1_planning_group"
-		self._commander = moveit_commander.roscpp_initialize(sys.argv)
+		moveit_commander.roscpp_initialize(sys.argv)
 		self._robot = moveit_commander.RobotCommander()
 		self._scene = moveit_commander.PlanningSceneInterface()
 		self._group = moveit_commander.MoveGroupCommander(self._planning_group)
@@ -208,7 +208,6 @@ class ReqInfo:
 
 def main():
 
-	rospy.sleep(5)
 	ur5 = Ur5Moveit()
 	box_name = 'task2_box'
 	ur5.add_box(box_name, ReqInfo.BoxSize, ReqInfo.BoxPose)
