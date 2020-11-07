@@ -1,4 +1,4 @@
-arm_controller:
+ur5_1_controller:
   type: position_controllers/JointTrajectoryController
   joints:
      - ur5_elbow_joint 

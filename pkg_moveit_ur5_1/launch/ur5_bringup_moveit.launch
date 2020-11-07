@@ -10,7 +10,7 @@
 
 <!-- Spawning arm controller -->
 <node name="arm_controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
-    output="screen" args="arm_controller"/>
+    output="screen" args="ur5_1_controller"/>
 <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
     <param name="use_gui" value="false"/>
     <rosparam param="source_list">[/joint_states]</rosparam>
