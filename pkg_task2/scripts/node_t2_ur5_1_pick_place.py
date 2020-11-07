@@ -208,6 +208,7 @@ class ReqInfo:
 
 def main():
 
+	rospy.sleep(5) # delay need when it is launched from launch file
 	ur5 = Ur5Moveit()
 	box_name = 'task2_box'
 	ur5.add_box(box_name, ReqInfo.BoxSize, ReqInfo.BoxPose)
