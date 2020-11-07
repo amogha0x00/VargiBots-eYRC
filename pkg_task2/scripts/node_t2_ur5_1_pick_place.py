@@ -137,8 +137,8 @@ class Ur5Moveit:
 			Attaching Objects to the Robot
 		'''
 
-		touch_links = self._robot.get_link_names(group=self._planning_group)
-		self._scene.attach_box(self._eef_link, self._box_name, touch_links=touch_links)
+		#touch_links = self._robot.get_link_names(group=self._planning_group)
+		self._scene.attach_box(self._eef_link, self._box_name, touch_links=[self._eef_link])
 
 		self._vacuum_gripper(1)
 		# We wait for the planning scene to update.
@@ -161,18 +161,14 @@ class Ur5Moveit:
 			 Picks the box in both gazebo and rviz from position pick_pose 
 		'''
 		self.go_to_pose(pick_pose)
-		rospy.sleep(1)
 		self.attach_box()
-		rospy.sleep(1)
 
 	def place_box(self, place_pose):
 		'''
 			Places the box in both gazebo and rviz to position pick_pose
 		'''
 		self.go_to_pose(place_pose)
-		rospy.sleep(1)
 		self.detach_box()
-		rospy.sleep(1)
 
 	# Destructor
 	def __del__(self):
@@ -214,7 +210,7 @@ def main():
 
 	rospy.sleep(5)
 	ur5 = Ur5Moveit()
-	box_name = 'task2_box' 
+	box_name = 'task2_box'
 	ur5.add_box(box_name, ReqInfo.BoxSize, ReqInfo.BoxPose)
 	ur5.pick_box(ReqInfo.PickPose)
 	ur5.place_box(ReqInfo.PlacePose)
