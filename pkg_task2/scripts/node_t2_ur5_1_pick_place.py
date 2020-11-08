@@ -182,7 +182,7 @@ class ReqInfo:
 	'''
 	PickPose = geometry_msgs.msg.Pose()
 	PickPose.position.x = 0 # centre of box
-	PickPose.position.y = 0.31 - 0.15/2 + 0.02 # box_position - half of box length + vaccum range 
+	PickPose.position.y = 0.31 - 0.15/2 + 0.02 # box_position - half of box length + vaccum range
 	PickPose.position.z = 1.97 - 0.15/2 + 0.02 # box_position - half of box length + vaccum range
 	PickPose.orientation.x = 0
 	PickPose.orientation.y = 0

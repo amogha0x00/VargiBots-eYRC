@@ -5,7 +5,6 @@
 
 <!-- trajectory control load -->
 
-<rosparam command="load" file="$(find pkg_moveit_ur5_1)/config/controllers.yaml"/>
 <rosparam file="$(find pkg_moveit_ur5_1)/config/trajectory_control.yaml" command="load"/>
 
 <!-- Spawning arm controller -->
@@ -16,7 +15,6 @@
     <rosparam param="source_list">[/joint_states]</rosparam>
     </node>
 
-<!-- <rosparam file="$(find pkg_moveit_ur5_1)/config/ur5_1_moveit_controllers.yaml"/> -->
 
 <!-- moveit launch file -->
 <include file="$(find pkg_moveit_ur5_1)/launch/move_group.launch">
