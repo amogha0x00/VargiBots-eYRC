@@ -1,20 +1,16 @@
 <launch>
 
 <!-- Launch Gazebo  -->
-<include file="$(find pkg_vb_sim)/launch/task2_ur5_world.launch"/>
+<include file="$(find pkg_vb_sim)/launch/task2_world.launch" />
 
-<!-- trajectory control load -->
-
-<rosparam file="$(find pkg_moveit_ur5_1)/config/trajectory_control.yaml" command="load"/>
-
-<!-- Spawning arm controller -->
-<node name="arm_controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
-    output="screen" args="ur5_1_controller"/>
-<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
-    <param name="use_gui" value="false"/>
-    <rosparam param="source_list">[/joint_states]</rosparam>
-    </node>
-
+<include file = "$(find pkg_vb_sim)/launch/gazebo_spawn_ur5_1.launch" >
+    <arg name="arg_x" value="0.04" />
+    <arg name="arg_y" value="0.76" />
+    <arg name="arg_z" value="0.05" />
+    <arg name="arg_R" value="0.0" />
+    <arg name="arg_P" value="0.0" />
+    <arg name="arg_Y" value="3.14" />
+</include>
 
 <!-- moveit launch file -->
 <include file="$(find pkg_moveit_ur5_1)/launch/move_group.launch">

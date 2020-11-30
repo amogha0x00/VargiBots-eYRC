@@ -1,0 +1,23 @@
+<launch>
+    
+    <!-- Launch Task-3 Simulation Environment in Gazebo -->
+    <include file="$(find pkg_vb_sim)/launch/task3_simulation.launch" />
+
+    <!-- Launch Moveit Group Node -->
+    <include file = "$(find pkg_moveit_ur5_1)/launch/move_group.launch" /> 
+
+    <!-- Run RViz with Moveit! Pluging -->
+    <arg name="use_rviz" default="true" />
+
+    <include file="$(find pkg_moveit_ur5_1)/launch/moveit_rviz.launch" if="$(arg use_rviz)">
+        <arg name="rviz_config" value="$(find pkg_moveit_ur5_1)/launch/moveit.rviz"/>
+    </include>
+    
+    <!-- Add Shelf to Moveit! Planning Scene in RViz -->
+    <arg name="scene_file" default="$(find pkg_task3)/config/rviz/task3.scene"/> 
+    <node name = "moveit_publish_scene_from_text" pkg= "moveit_ros_planning" type = "moveit_publish_scene_from_text" args= "$(arg scene_file)"/>
+
+    <!-- launch task3 solution node -->
+    <node name= "n0de_t3" pkg= "pkg_task3" type="node_t3.py" output="screen"/>
+
+</launch>

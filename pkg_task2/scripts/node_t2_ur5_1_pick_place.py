@@ -16,7 +16,7 @@ class Ur5Moveit:
 	# Constructor
 	def __init__(self):
 
-		rospy.init_node('node_eg3_set_joint_angles', anonymous=True)
+		rospy.init_node('node_t2_ur5_1_pick_place', anonymous=True)
 
 		self._planning_group = "ur5_1_planning_group"
 		moveit_commander.roscpp_initialize(sys.argv)
@@ -118,7 +118,6 @@ class Ur5Moveit:
 			seconds = rospy.get_time()
 			# If we exited the while loop without returning then we timed out
 		return False
-		## END_SUB_TUTORIAL
 
 
 	def add_box(self, box_name, box_size, box_pose, timeout=4):	
