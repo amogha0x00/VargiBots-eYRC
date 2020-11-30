@@ -291,9 +291,8 @@ class PickPlace:
 		self.add_box(self._pickable_name, ReqInfo.BoxSize, box_pose)
 
 		print('Time to pick!!!')
-
-		self.attach_box()
 		self._picked_box_name.append(self._pickable_name)
+		self.attach_box()
 		self._flag_pickable == 0
 		self._flag_take_pose = 0
 
@@ -311,7 +310,7 @@ class PickPlace:
 
 		self.detach_box()
 		self.remove_box()
-		#self._convear_belt(90)
+		#self.set_convear_power(90)
 
 
 	def cam_callback(self, cam):
