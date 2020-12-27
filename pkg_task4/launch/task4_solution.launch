@@ -1,0 +1,34 @@
+<launch>
+  
+  <!-- Add Models PATH for Gazebo -->
+  <env name="GAZEBO_MODEL_PATH" value="$(find pkg_vb_sim)/models"/>
+
+  <!-- Arguments -->
+  <arg name="paused" default="false"/>
+  <arg name="use_sim_time" default="true"/>
+  <arg name="gui" default="true"/>
+  <arg name="rviz" default = "false"/>
+  <arg name="headless" default="false"/>
+  <arg name="debug" default="false"/>
+  <arg name="extra_gazebo_args" default="--verbose"/>
+
+  <!-- Launch task4 simulation in Gazebo --> 
+  <include file="$(find pkg_vb_sim)/launch/task4_simulation.launch" />
+  
+  <!-- Launch two move_group nodes for the two UR5 Arms -->
+  <include file="$(find pkg_vb_sim)/launch/two_ur5_move_group.launch" />
+
+  <!-- launch node which loads packages color info into parameter server -->
+  <node name= "node_get_package_info" pkg= "pkg_task4" type="node_get_package_info.py" output="screen"/>
+
+  <group ns="ur5_1">
+    <arg name="scene_file" default="$(find pkg_task4)/config/rviz/ur5_1_planning_scene.scene"/> 
+    <node name = "moveit_publish_scene_from_text" pkg= "moveit_ros_planning" type = "moveit_publish_scene_from_text" args= "$(arg scene_file)"/>
+  </group>
+  
+  <group ns="ur5_2">
+    <arg name="scene_file" default="$(find pkg_task4)/config/rviz/ur5_2_planning_scene.scene"/> 
+    <node name = "moveit_publish_scene_from_text" pkg= "moveit_ros_planning" type = "moveit_publish_scene_from_text" args= "$(arg scene_file)"/>
+  </group>
+
+</launch>

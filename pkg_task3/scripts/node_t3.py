@@ -310,7 +310,7 @@ class PickPlace:
 
 		self.detach_box()
 		self.remove_box()
-		#self.set_convear_power(90)
+		#self.set_convear_power(100)
 
 
 	def cam_callback(self, cam):
