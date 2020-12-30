@@ -22,13 +22,13 @@
   <node name= "node_get_package_info" pkg= "pkg_task4" type="node_get_package_info.py" output="screen"/>
 
   <group ns="ur5_1">
-    <arg name="scene_file" default="$(find pkg_task4)/config/rviz/ur5_1_planning_scene.scene"/> 
+    <arg name="scene_file" default="$(find pkg_task4)/config/rviz/ur5_1_planning_scene_with_boxs.scene"/> 
     <node name = "moveit_publish_scene_from_text" pkg= "moveit_ros_planning" type = "moveit_publish_scene_from_text" args= "$(arg scene_file)"/>
   </group>
-  
+  <!--
   <group ns="ur5_2">
     <arg name="scene_file" default="$(find pkg_task4)/config/rviz/ur5_2_planning_scene.scene"/> 
     <node name = "moveit_publish_scene_from_text" pkg= "moveit_ros_planning" type = "moveit_publish_scene_from_text" args= "$(arg scene_file)"/>
-  </group>
+  </group> -->
 
 </launch>

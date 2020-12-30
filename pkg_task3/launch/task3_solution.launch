@@ -24,7 +24,7 @@
     <arg name="scene_file" default="$(find pkg_task3)/config/rviz/task3.scene"/> 
     <node name = "moveit_publish_scene_from_text" pkg= "moveit_ros_planning" type = "moveit_publish_scene_from_text" args= "$(arg scene_file)"/>
 
-    <!-- launch task3 solution node -->
-    <node name= "node_t3" pkg= "pkg_task3" type="node_t3.py" output="screen"/>
+    <!-- launch task3 solution node 
+    <node name= "node_t3" pkg= "pkg_task3" type="node_t3.py" output="screen"/> -->
     
 </launch>
