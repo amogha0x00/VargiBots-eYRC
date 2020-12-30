@@ -75,6 +75,7 @@ class Ur5Moveit:
 
 		self._group.set_joint_value_target(arg_list_joint_angles)
 		self._computed_plan = self._group.plan()
+		print(self._computed_plan)
 		if self._computed_plan.joint_trajectory.points:
 			flag_plan = self._group.execute(self._computed_plan, wait=True)
 		else:
@@ -302,40 +303,40 @@ def main():
 	# ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'home_to_packagen01.yaml'.format(ur5._box_name), 5)
 	# ur5.attach_box()
 	# ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'packagen01_to_home.yaml'.format(ur5._box_name), 5)
-	for i in a:
-		ur5._box_name = i[:-7]
-		if ur5._box_name == 'packagen00':
-			ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'allZeros_to_packagen00.yaml', 5)
-		else:
-			ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'home_to_{}.yaml'.format(ur5._box_name), 5)
-		vacuum_gripper(1)
-		ur5.attach_box()
-		ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, '{}_to_home.yaml'.format(ur5._box_name), 5)
-		vacuum_gripper(0)
-		ur5.detach_box()
-		ur5.remove_box()
-		
-	# ur5.hard_set_joint_angles(home_angles, 2)
-	# for i in a[8:]:
+	# for i in a:
 	# 	ur5._box_name = i[:-7]
-	# 	print('GOING TO {}'.format(ur5._box_name))
-	# 	ur5.hard_set_joint_angles(angles['{}_angles'.format(ur5._box_name)], 100)
-		
 	# 	if ur5._box_name == 'packagen00':
-	# 		file_path = ur5._file_path + 'allZeros_to_packagen00.yaml'
+	# 		ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'allZeros_to_packagen00.yaml', 5)
 	# 	else:
-	# 		file_path = ur5._file_path + 'home_to_{}.yaml'.format(ur5._box_name)
-
-	# 	with open(file_path, 'w') as file_save:
-	# 		yaml.dump(ur5._computed_plan, file_save, default_flow_style=True)
-		
+	# 		ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'home_to_{}.yaml'.format(ur5._box_name), 5)
 	# 	vacuum_gripper(1)
 	# 	ur5.attach_box()
-	# 	ur5.hard_set_joint_angles(home_angles, 100)
-	# 	#ur5.go_to_pose(HomePose)
-	# 	file_path = ur5._file_path + '{}_to_home.yaml'.format(ur5._box_name)
-	# 	with open(file_path, 'w') as file_save:
-	# 		yaml.dump(ur5._computed_plan, file_save, default_flow_style=True)
+	# 	ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, '{}_to_home.yaml'.format(ur5._box_name), 5)
+	# 	vacuum_gripper(0)
+	# 	ur5.detach_box()
+	# 	ur5.remove_box()
+		
+	ur5.hard_set_joint_angles(home_angles, 2)
+	for i in a[8:]:
+		ur5._box_name = i[:-7]
+		print('GOING TO {}'.format(ur5._box_name))
+		ur5.hard_set_joint_angles(angles['{}_angles'.format(ur5._box_name)], 100)
+		
+		if ur5._box_name == 'packagen00':
+			file_path = ur5._file_path + 'allZeros_to_packagen00.yaml'
+		else:
+			file_path = ur5._file_path + 'home_to_{}.yaml'.format(ur5._box_name)
+
+		with open(file_path, 'w') as file_save:
+			yaml.dump(ur5._computed_plan, file_save, default_flow_style=True)
+		
+		vacuum_gripper(1)
+		ur5.attach_box()
+		ur5.hard_set_joint_angles(home_angles, 100)
+		#ur5.go_to_pose(HomePose)
+		file_path = ur5._file_path + '{}_to_home.yaml'.format(ur5._box_name)
+		with open(file_path, 'w') as file_save:
+			yaml.dump(ur5._computed_plan, file_save, default_flow_style=True)
 		
 	# 	vacuum_gripper(0)
 	# 	ur5.detach_box()
