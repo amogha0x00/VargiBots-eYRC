@@ -20,6 +20,10 @@
 
   <!-- launch node which loads packages color info into parameter server -->
   <node name= "node_get_package_info" pkg= "pkg_task4" type="node_get_package_info.py" output="screen"/>
+  <!-- launch node which controls ur5_1 -->
+  <node name= "node_ur5_1" pkg= "pkg_task4" type="node_ur5_1.py" output="screen"/>
+  <!-- launch node which controls ur5_2 -->
+  <node name= "node_ur5_2" pkg= "pkg_task4" type="node_ur5_2.py" output="screen"/>
 
   <group ns="ur5_1">
     <arg name="scene_file" default="$(find pkg_task4)/config/rviz/ur5_1_planning_scene_with_boxs.scene"/> 

@@ -1,15 +1,15 @@
 #!/usr/bin/env python
+import sys
 import rospy
 import moveit_commander
 import moveit_msgs.msg
-import geometry_msgs.msg
 import actionlib
 import rospkg
 from pkg_vb_sim.srv import vacuumGripper
 from pkg_vb_sim.srv import conveyorBeltPowerMsg
+from std_srvs.srv import Empty
 
 import yaml
-import sys
 
 class Ur5Moveit:
 
@@ -19,7 +19,7 @@ class Ur5Moveit:
 		self._robot_ns = '/'  + arg_robot_name
 		self._planning_group = "manipulator"
 		
-		self._commander = moveit_commander.roscpp_initialize(sys.argv)
+		moveit_commander.roscpp_initialize(sys.argv)
 		self._robot = moveit_commander.RobotCommander(robot_description= self._robot_ns + "/robot_description", ns=self._robot_ns)
 		self._scene = moveit_commander.PlanningSceneInterface(ns=self._robot_ns)
 		self._group = moveit_commander.MoveGroupCommander(self._planning_group, robot_description= self._robot_ns + "/robot_description", ns=self._robot_ns)
@@ -180,5 +180,6 @@ def main():
 		ur5_1.remove_box()
 	
 	del ur5_1
+
 if __name__ == '__main__':
 	main()

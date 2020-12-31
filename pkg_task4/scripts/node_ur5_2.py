@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+import sys
+import threading
+
 import rospy
 import moveit_commander
 import moveit_msgs.msg
@@ -8,9 +11,10 @@ import rospkg
 from pkg_vb_sim.srv import vacuumGripper
 from pkg_vb_sim.srv import conveyorBeltPowerMsg
 from pkg_vb_sim.msg import LogicalCameraImage
+from std_srvs.srv import Empty
 
 import yaml
-import sys
+
 
 class Ur5Moveit:
 
@@ -19,8 +23,8 @@ class Ur5Moveit:
 
 		self._robot_ns = '/'  + arg_robot_name
 		self._planning_group = "manipulator"
-		
-		self._commander = moveit_commander.roscpp_initialize(sys.argv)
+
+		moveit_commander.roscpp_initialize(sys.argv)
 		self._robot = moveit_commander.RobotCommander(robot_description= self._robot_ns + "/robot_description", ns=self._robot_ns)
 		self._scene = moveit_commander.PlanningSceneInterface(ns=self._robot_ns)
 		self._group = moveit_commander.MoveGroupCommander(self._planning_group, robot_description= self._robot_ns + "/robot_description", ns=self._robot_ns)
@@ -34,7 +38,7 @@ class Ur5Moveit:
 		self._box_name = ''
 		self._picked_box_name = []
 		self._packages_info = packages_info
-		self._convear_belt = rospy.ServiceProxy('/eyrc/vb/conveyor/set_power', conveyorBeltPowerMsg)
+		self._conveyor_belt = rospy.ServiceProxy('/eyrc/vb/conveyor/set_power', conveyorBeltPowerMsg)
 		self._vacuum_gripper = rospy.ServiceProxy('/eyrc/vb/ur5/activate_vacuum_gripper/ur5_2', vacuumGripper)
 		self._current_power = 0
 		self._pickable_name = ''
@@ -63,31 +67,6 @@ class Ur5Moveit:
 	def clear_octomap(self):
 		clear_octomap_service_proxy = rospy.ServiceProxy(self._robot_ns + "/clear_octomap", Empty)
 		return clear_octomap_service_proxy()
-	
-	def go_to_pose(self, arg_pose):
-
-		pose_values = self._group.get_current_pose().pose
-		rospy.loginfo('\033[94m' + ">>> Current Pose:" + '\033[0m')
-		rospy.loginfo(pose_values)
-
-		self._group.set_pose_target(arg_pose)
-		flag_plan = self._group.go(wait=True)  # wait=False for Async Move
-
-		pose_values = self._group.get_current_pose().pose
-		rospy.loginfo('\033[94m' + ">>> Final Pose:" + '\033[0m')
-		rospy.loginfo(pose_values)
-
-		list_joint_values = self._group.get_current_joint_values()
-		rospy.loginfo('\033[94m' + ">>> Final Joint Values:" + '\033[0m')
-		rospy.loginfo(list_joint_values)
-
-		if (flag_plan == True):
-			rospy.loginfo('\033[94m' + ">>> go_to_pose() Success" + '\033[0m')
-		else:
-			rospy.logerr(
-				'\033[94m' + ">>> go_to_pose() Failed. Solution for Pose not Found." + '\033[0m')
-
-		return flag_plan
 
 	def moveit_play_planned_path_from_file(self, arg_file_path, arg_file_name):
 		file_path = arg_file_path + arg_file_name
@@ -144,11 +123,11 @@ class Ur5Moveit:
 			Adding Objects to the Planning Scene
 			First, we will create a box in the planning scene at box_pose
 		"""
-		box_size = (0.15, 0.15, 0.15)
+		box_size = ReqInfo.BoxSize
 		box_pose.header.frame_id = self._planning_frame
 		self._box_name = box_name
 		self._scene.add_box(self._box_name, box_pose, size=box_size)
-	
+
 		return self.wait_for_state_update(box_is_known=True, timeout=timeout)
 
 	def attach_box(self,timeout=4):
@@ -180,32 +159,37 @@ class Ur5Moveit:
 
 		# We wait for the planning scene to update.
 		return self.wait_for_state_update(box_is_attached=False, box_is_known=False, timeout=timeout)
-	
+
 	def pick_box(self):
 		'''
 			 Picks the box in both gazebo and rviz from position pick_pose 
 		'''
 		#self.go_to_pose(ReqInfo.HomePose)
-		self.set_convear_power(90)
+		if not self._flag_pickable:
+			self.set_conveyor_power(90)
 		while not self._flag_pickable:
 			rospy.sleep(0.1)
 		self.add_box(self._pickable_name, ReqInfo.BoxPose)
-		print('Time to pick!!!')
-
 		self.attach_box()
-		self.set_convear_power(50)
-		self._flag_pickable == 0
+		self._flag_pickable = 0
 	
 	def place_box(self):
 		"""
 			Places the box in both gazebo and rviz to position pick_pose
 		"""
+		threading.Thread(name="worker", target=self.set_conveyor_power, args=(90, 1)).start()
 		pkg_color = self._packages_info[self._picked_box_name[-1]]
 		self.moveit_hard_play_planned_path_from_file(self._file_path, 'home_to_{}Bin.yaml'.format(pkg_color), 5)
-		self._flag_pickable = 0
 		self.detach_box()
 		self.remove_box()
 		self.moveit_hard_play_planned_path_from_file(self._file_path, '{}Bin_to_home.yaml'.format(pkg_color), 5)
+
+	def set_conveyor_power(self, power, delay=-1):
+		"""
+			Sets conveyor belt power to `power` after delay of `delay`
+		"""
+		rospy.sleep(delay)
+		self._conveyor_belt(power)
 
 	def cam_callback(self, cam):
 		"""
@@ -217,20 +201,14 @@ class Ur5Moveit:
 				if package_name in self._picked_box_name:
 					break
 
-				if abs(model.pose.position.y) <= 0.1:
-					self._picked_box_name.append(self._pickable_name)
-					#print('PICKING!!!!!!!!!')
+				if abs(model.pose.position.y) <= 0.05:
 					self._pickable_name = package_name
-					self.set_convear_power(0)
+					self._picked_box_name.append(self._pickable_name)
+					self.set_conveyor_power(0)
 					self._flag_pickable = 1
 				else:
 					self._flag_pickable = 0
 				break
-	def set_convear_power(self, power):
-		if self._current_power == power:
-			return
-		self._current_power = power
-		self._convear_belt(self._current_power)
 
 	# Destructor
 	def __del__(self):
@@ -240,51 +218,14 @@ class Ur5Moveit:
 
 class ReqInfo:
 
-	RedBinPose = geometry_msgs.msg.Pose()
-	RedBinPose.position.x = 0.11 # center of box
-	RedBinPose.position.y = 0.65 # somewhere near miiddle
-	RedBinPose.position.z = 1 # just above walls of bin
-	RedBinPose.orientation.x = -0.5
-	RedBinPose.orientation.y = -0.5
-	RedBinPose.orientation.z =  0.5
-	RedBinPose.orientation.w =  0.5
-
-	GreenBinPose = geometry_msgs.msg.Pose()
-	GreenBinPose.position.x = 0.75 # center of box
-	GreenBinPose.position.y = 0.03 # somewhere near miiddle
-	GreenBinPose.position.z = 1 # just above walls of bin
-	GreenBinPose.orientation.x = -0.5
-	GreenBinPose.orientation.y = -0.5
-	GreenBinPose.orientation.z = 0.5
-	GreenBinPose.orientation.w = 0.5
-	
-	BlueBinPose = geometry_msgs.msg.Pose()
-	BlueBinPose.position.x = 0.04 # center of box
-	BlueBinPose.position.y = -0.65 # somewhere near miiddle
-	BlueBinPose.position.z = 1 # just above walls of bin
-	BlueBinPose.orientation.x = -0.5
-	BlueBinPose.orientation.y = -0.5
-	BlueBinPose.orientation.z = 0.5
-	BlueBinPose.orientation.w = 0.5
-
 	VacuumGripperWidth = 0.115    # Vacuum Gripper Width
 	BoxSize = (0.15, 0.15, 0.15) # cube of sides 0.15 units
 	Delta = VacuumGripperWidth + (BoxSize[0]/2) + 0.01 # 0.19
-	
-	HomePose = geometry_msgs.msg.Pose()
-	HomePose.position.x = -0.8
-	HomePose.position.y = 0
-	HomePose.position.z = 1 + Delta
-	# This to keep EE parallel to Ground Plane
-	HomePose.orientation.x = -0.5
-	HomePose.orientation.y = -0.5
-	HomePose.orientation.z = 0.5
-	HomePose.orientation.w = 0.5
 
 	BoxPose = geometry_msgs.msg.PoseStamped()
-	BoxPose.pose.position.x = -0.8 # (+offset of self) + (-box pose)
-	BoxPose.pose.position.y = 0 # (+offset of self) + (-box pose)
-	BoxPose.pose.position.z = 1 # (+offset of self) + (+box pose)
+	BoxPose.pose.position.x = -0.8
+	BoxPose.pose.position.y = 0
+	BoxPose.pose.position.z = 1
 	BoxPose.pose.orientation.w = 1.0
 
 def main():

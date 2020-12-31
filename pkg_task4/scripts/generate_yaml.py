@@ -28,7 +28,7 @@ class Ur5Moveit:
 		self._robot_ns = '/'  + arg_robot_name
 		self._planning_group = "manipulator"
 		
-		self._commander = moveit_commander.roscpp_initialize(sys.argv)
+		moveit_commander.roscpp_initialize(sys.argv)
 		self._robot = moveit_commander.RobotCommander(robot_description= self._robot_ns + "/robot_description", ns=self._robot_ns)
 		self._scene = moveit_commander.PlanningSceneInterface(ns=self._robot_ns)
 		self._group = moveit_commander.MoveGroupCommander(self._planning_group, robot_description= self._robot_ns + "/robot_description", ns=self._robot_ns)

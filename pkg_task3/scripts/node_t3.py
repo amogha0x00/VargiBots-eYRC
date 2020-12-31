@@ -293,7 +293,7 @@ class PickPlace:
 		print('Time to pick!!!')
 		self._picked_box_name.append(self._pickable_name)
 		self.attach_box()
-		self._flag_pickable == 0
+		self._flag_pickable = 0
 		self._flag_take_pose = 0
 
 	def place_box(self):
