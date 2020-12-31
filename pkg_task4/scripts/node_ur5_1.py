@@ -48,7 +48,7 @@ class Ur5Moveit:
 
 		rp = rospkg.RosPack()
 		self._pkg_path = rp.get_path('pkg_task4')
-		self._file_path = self._pkg_path + '/config/saved_trajectories/'
+		self._file_path = self._pkg_path + '/config/saved_trajectories{}/'.format(self._robot_ns)
 		rospy.loginfo( "Package Path: {}".format(self._file_path) )
 
 
@@ -157,27 +157,28 @@ def main():
 	rospy.init_node('node_ur5_1', anonymous=True)
 	try:
 		while not rospy.has_param('/packages_color_info'):
-			rospy.sleep(0.1)
+			rospy.sleep(0.4)
 	except KeyboardInterrupt:
-		print('Quiting')
+		print('Quiting loop')
 
 	vacuum_gripper = rospy.ServiceProxy('/eyrc/vb/ur5/activate_vacuum_gripper/ur5_1', vacuumGripper)
 	convear_belt = rospy.ServiceProxy('/eyrc/vb/conveyor/set_power', conveyorBeltPowerMsg)
 	#convear_belt(50)
-	ur5 = Ur5Moveit('ur5_1')
+	ur5_1 = Ur5Moveit('ur5_1')
 	a = ['packagen00','packagen01','packagen02','packagen10','packagen11','packagen12','packagen20','packagen21','packagen22']
 	for i in a:
-		ur5._box_name = i
-		if ur5._box_name == 'packagen00':
-			ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'allZeros_to_packagen00.yaml', 5)
+		ur5_1._box_name = i
+		if ur5_1._box_name == 'packagen00':
+			ur5_1.moveit_hard_play_planned_path_from_file(ur5_1._file_path, 'allZeros_to_packagen00.yaml', 5)
 		else:
-			ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'home_to_{}.yaml'.format(ur5._box_name), 5)
+			ur5_1.moveit_hard_play_planned_path_from_file(ur5_1._file_path, 'home_to_{}.yaml'.format(ur5_1._box_name), 5)
 		vacuum_gripper(1)
-		ur5.attach_box()
-		ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, '{}_to_home.yaml'.format(ur5._box_name), 5)
+		ur5_1.attach_box()
+		ur5_1.moveit_hard_play_planned_path_from_file(ur5_1._file_path, '{}_to_home.yaml'.format(ur5_1._box_name), 5)
 		vacuum_gripper(0)
-		ur5.detach_box()
-		ur5.remove_box()
-
+		ur5_1.detach_box()
+		ur5_1.remove_box()
+	
+	del ur5_1
 if __name__ == '__main__':
 	main()

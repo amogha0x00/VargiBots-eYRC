@@ -54,7 +54,7 @@ class Ur5Moveit:
 
 		rp = rospkg.RosPack()
 		self._pkg_path = rp.get_path('pkg_task4')
-		self._file_path = self._pkg_path + '/config/saved_trajectories/'
+		self._file_path = self._pkg_path + '/config/saved_trajectories{}/'.format(self._robot_ns)
 		rospy.loginfo( "Package Path: {}".format(self._file_path) )
 
 
@@ -185,32 +185,27 @@ class Ur5Moveit:
 		'''
 			 Picks the box in both gazebo and rviz from position pick_pose 
 		'''
-		self.go_to_pose(ReqInfo.HomePose)
+		#self.go_to_pose(ReqInfo.HomePose)
 		self.set_convear_power(90)
 		while not self._flag_pickable:
 			rospy.sleep(0.1)
-
 		self.add_box(self._pickable_name, ReqInfo.BoxPose)
-
 		print('Time to pick!!!')
+
 		self.attach_box()
-		self._picked_box_name.append(self._pickable_name)
+		self.set_convear_power(50)
 		self._flag_pickable == 0
 	
 	def place_box(self):
 		"""
 			Places the box in both gazebo and rviz to position pick_pose
 		"""
-
-		if self._packages_info[self._picked_box_name[-1]] == 'red':
-			self.go_to_pose(ReqInfo.RedBinPose)
-		elif self._packages_info[self._picked_box_name[-1]] == 'green':
-			self._ur5.go_to_pose(ReqInfo.GreenBinPose)
-		else:
-			self.go_to_pose(ReqInfo.BlueBinPose)
-
+		pkg_color = self._packages_info[self._picked_box_name[-1]]
+		self.moveit_hard_play_planned_path_from_file(self._file_path, 'home_to_{}Bin.yaml'.format(pkg_color), 5)
+		self._flag_pickable = 0
 		self.detach_box()
 		self.remove_box()
+		self.moveit_hard_play_planned_path_from_file(self._file_path, '{}Bin_to_home.yaml'.format(pkg_color), 5)
 
 	def cam_callback(self, cam):
 		"""
@@ -220,13 +215,14 @@ class Ur5Moveit:
 			if model.type[:-2] == 'packagen':
 				package_name = model.type
 				if package_name in self._picked_box_name:
-					continue
+					break
 
 				if abs(model.pose.position.y) <= 0.1:
+					self._picked_box_name.append(self._pickable_name)
 					#print('PICKING!!!!!!!!!')
 					self._pickable_name = package_name
-					self._flag_pickable = 1
 					self.set_convear_power(0)
+					self._flag_pickable = 1
 				else:
 					self._flag_pickable = 0
 				break
@@ -295,15 +291,16 @@ def main():
 	rospy.init_node('node_ur5_2', anonymous=True)
 	try:
 		while not rospy.has_param('/packages_color_info'):
-			rospy.sleep(0.1)
+			rospy.sleep(0.4)
 	except KeyboardInterrupt:
-		print('Quiting')
+		print('Quiting loop')
 	info = rospy.get_param('/packages_color_info')
 	print(info)
 	ur5_2 = Ur5Moveit('ur5_2', info)
+	ur5_2.moveit_hard_play_planned_path_from_file(ur5_2._file_path, 'allZeros_to_home.yaml', 5)
 	rospy.Subscriber('eyrc/vb/logical_camera_2', LogicalCameraImage, ur5_2.cam_callback)
 	i = 0
-	while not rospy.is_shutdown() and i < 3:
+	while not rospy.is_shutdown() and i < 9:
 		ur5_2.pick_box()
 		ur5_2.place_box()
 		i+=1

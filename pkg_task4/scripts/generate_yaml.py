@@ -57,7 +57,7 @@ class Ur5Moveit:
 
 		rp = rospkg.RosPack()
 		self._pkg_path = rp.get_path('pkg_task4')
-		self._file_path = self._pkg_path + '/config/saved_trajectories/'
+		self._file_path = self._pkg_path + '/config/saved_trajectories{}/'.format(self._robot_ns)
 		rospy.loginfo( "Package Path: {}".format(self._file_path) )
 
 
@@ -75,11 +75,13 @@ class Ur5Moveit:
 
 		self._group.set_joint_value_target(arg_list_joint_angles)
 		self._computed_plan = self._group.plan()
-		print(self._computed_plan)
+		#print(self._computed_plan)
+		st_time = rospy.get_time()
 		if self._computed_plan.joint_trajectory.points:
 			flag_plan = self._group.execute(self._computed_plan, wait=True)
 		else:
 			flag_plan = False
+		self._computed_time = rospy.get_time() - st_time
 		# list_joint_values = self._group.get_current_joint_values()
 		# rospy.loginfo('\033[94m' + ">>> Final Joint Values:" + '\033[0m')
 		# rospy.loginfo(list_joint_values)
@@ -176,7 +178,7 @@ class Ur5Moveit:
 			Adding Objects to the Planning Scene
 			First, we will create a box in the planning scene at box_pose
 		"""
-		box_size = (0.15,0.15,0.15)
+		box_size = (0.16,0.16,0.16)
 		box_pose.header.frame_id = self._planning_frame
 		self._box_name = box_name
 		self._scene.add_box(self._box_name, box_pose, size=box_size)
@@ -246,7 +248,7 @@ class Ur5Moveit:
 		return False
 def main():
 
-	ur5 = Ur5Moveit('ur5_1')
+	ur5 = Ur5Moveit('ur5_2')
 
 	VacuumGripperWidth = 0.115    # Vacuum Gripper Width
 	BoxSize = (0.15, 0.15, 0.15) # cube of sides 0.15 units
@@ -262,6 +264,32 @@ def main():
 	HomePose.orientation.z = 0.5
 	HomePose.orientation.w = 0.5
 
+	RedBinPose = geometry_msgs.msg.Pose()
+	RedBinPose.position.x = 0 # center of box
+	RedBinPose.position.y = 0.65 # somewhere near miiddle
+	RedBinPose.position.z = 1 # just above walls of bin
+	RedBinPose.orientation.x = -0.5
+	RedBinPose.orientation.y = -0.5
+	RedBinPose.orientation.z =  0.5
+	RedBinPose.orientation.w =  0.5
+
+	YellowBinPose = geometry_msgs.msg.Pose()
+	YellowBinPose.position.x = 0.75 # center of box
+	YellowBinPose.position.y = 0 # somewhere near miiddle
+	YellowBinPose.position.z = 1 # just above walls of bin
+	YellowBinPose.orientation.x = -0.5
+	YellowBinPose.orientation.y = -0.5
+	YellowBinPose.orientation.z = 0.5
+	YellowBinPose.orientation.w = 0.5
+	
+	GreenBinPose = geometry_msgs.msg.Pose()
+	GreenBinPose.position.x = 0 # center of box
+	GreenBinPose.position.y = -0.65 # somewhere near miiddle
+	GreenBinPose.position.z = 1 # just above walls of bin
+	GreenBinPose.orientation.x = -0.5
+	GreenBinPose.orientation.y = -0.5
+	GreenBinPose.orientation.z = 0.5
+	GreenBinPose.orientation.w = 0.5
 	# BoxPose = geometry_msgs.msg.Pose()
 	# BoxPose.position.x = 0.28
 	# BoxPose.position.y = (6.59 + Delta) - 7
@@ -272,9 +300,9 @@ def main():
 	# BoxPose.orientation.w = 0.011
 
 	BoxPose = geometry_msgs.msg.PoseStamped()
-	BoxPose.pose.position.x = 0.28
-	BoxPose.pose.position.y = -0.41
-	BoxPose.pose.position.z = 1.92
+	BoxPose.pose.position.x = -0.8
+	BoxPose.pose.position.y = 0 
+	BoxPose.pose.position.z = 1
 	BoxPose.pose.orientation.w = 1.0
 
 	home_angles = [math.radians(172),
@@ -294,29 +322,64 @@ def main():
 	'packagen21_angles' : [-2.1173231602835703, -2.060962957306092, 2.315577997893504, 2.886384193245158, -1.0024981825093517, 0],
 	'packagen22_angles' : [-2.8152248676466956, -1.6434319637221213, 2.0297073347102135, 2.7559627506021194, -0.3035895625726175, 0]}
 	a = ['packagen00_angles','packagen01_angles','packagen02_angles','packagen10_angles','packagen11_angles','packagen12_angles','packagen20_angles','packagen21_angles','packagen22_angles']
-
+	redBinAngles = [-1.4021989827315986, -2.419851300424532, -1.6751688763338333, -0.6181097611262976, 1.5708253066354905, 0]
+	greenBinAngles = [-1.7394663777934447, -0.7215250654445988, 1.674853829440881, -2.523859580495726, -1.571644619132984, 0]
+	yellowBinAngles = [-0.1460482615680263, -0.5637933949566794, 1.3095397138479834, -2.315863329865439, -1.5710326593084032, 0]
 
 	vacuum_gripper = rospy.ServiceProxy('/eyrc/vb/ur5/activate_vacuum_gripper/ur5_1', vacuumGripper)
 	convear_belt = rospy.ServiceProxy('/eyrc/vb/conveyor/set_power', conveyorBeltPowerMsg)
-	convear_belt(50)
+	#convear_belt(50)
 	# ur5._box_name = 'packagen01'
 	# ur5.hard_set_joint_angles(home_angles, 20)
-	# ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'home_to_packagen01.yaml'.format(ur5._box_name), 5)
+
+	# ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'home_to_RedBin.yaml', 5)
+	# ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'RedBin_to_home.yaml', 5)
+
+	#ur5.go_to_predefined_pose('allZeros')
+	#ur5.go_to_pose(YellowBinPose)
 	# ur5.attach_box()
 	# ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'packagen01_to_home.yaml'.format(ur5._box_name), 5)
-	for i in a:
-		ur5._box_name = i[:-7]
-		if ur5._box_name == 'packagen00':
-			ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'allZeros_to_packagen00.yaml', 5)
-		else:
-			ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'home_to_{}.yaml'.format(ur5._box_name), 5)
-		vacuum_gripper(1)
+	# for i in a:
+	# 	ur5._box_name = i[:-7]
+	# 	if ur5._box_name == 'packagen00':
+	# 		ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'allZeros_to_packagen00.yaml', 5)
+	# 	else:
+	# 		ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'home_to_{}.yaml'.format(ur5._box_name), 5)
+	# 	vacuum_gripper(1)
+	# 	ur5.attach_box()
+	# 	ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, '{}_to_home.yaml'.format(ur5._box_name), 5)
+	# 	vacuum_gripper(0)
+	# 	ur5.detach_box()
+	# 	ur5.remove_box()
+
+	x = {}
+	y = {}
+	#ur5.go_to_predefined_pose('allZeros')
+	ur5.hard_set_joint_angles(home_angles, 20)
+	for i in range(3):
+		rospy.sleep(1)
+		ur5.add_box('box', BoxPose)
+		rospy.sleep(1)
 		ur5.attach_box()
-		ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, '{}_to_home.yaml'.format(ur5._box_name), 5)
-		vacuum_gripper(0)
+		ur5.hard_set_joint_angles(greenBinAngles, 20)
+		y[ur5._computed_plan] = ur5._computed_time
+		print(ur5._computed_time)
 		ur5.detach_box()
-		ur5.remove_box()
-		
+	 	ur5.remove_box()
+		ur5.hard_set_joint_angles(home_angles, 20)
+		x[ur5._computed_plan] = ur5._computed_time
+		print(ur5._computed_time)
+
+	file_path = ur5._file_path + 'greenBin_to_home.yaml'
+	plan = sorted(x.items(),key=lambda l: l[1])[0][0]
+	with open(file_path, 'w') as file_save:
+		yaml.dump(plan, file_save, default_flow_style=True)
+	file_path = ur5._file_path + 'home_to_greenBin.yaml'
+	plan = sorted(y.items(),key=lambda l: l[1])[0][0]
+	with open(file_path, 'w') as file_save:
+		yaml.dump(plan, file_save, default_flow_style=True)
+
+
 	# ur5.hard_set_joint_angles(home_angles, 2)
 	# for i in a[8:]:
 	# 	ur5._box_name = i[:-7]
