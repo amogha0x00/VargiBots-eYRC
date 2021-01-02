@@ -41,7 +41,6 @@ class Ur5Moveit:
 		self._group_names = self._robot.get_group_names()
 		self._box_name = ''
 
-
 		# Attribute to store computed trajectory by the planner	
 		self._computed_plan = ''
 		# Current State of the Robot is needed to add box to planning scene
@@ -248,7 +247,7 @@ class Ur5Moveit:
 		return False
 def main():
 
-	ur5 = Ur5Moveit('ur5_2')
+	ur5 = Ur5Moveit('ur5_1')
 
 	VacuumGripperWidth = 0.115    # Vacuum Gripper Width
 	BoxSize = (0.15, 0.15, 0.15) # cube of sides 0.15 units
@@ -329,11 +328,13 @@ def main():
 	vacuum_gripper = rospy.ServiceProxy('/eyrc/vb/ur5/activate_vacuum_gripper/ur5_1', vacuumGripper)
 	convear_belt = rospy.ServiceProxy('/eyrc/vb/conveyor/set_power', conveyorBeltPowerMsg)
 	#convear_belt(50)
-	# ur5._box_name = 'packagen01'
+	# ur5._box_name = 'packagen21'
 	# ur5.hard_set_joint_angles(home_angles, 20)
 
-	# ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'home_to_RedBin.yaml', 5)
-	# ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'RedBin_to_home.yaml', 5)
+	# ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'home_to_packagen21_new.yaml', 5)
+	# vacuum_gripper(1)
+	# ur5.attach_box()
+	# ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'packagen21_to_home_new.yaml', 5)
 
 	#ur5.go_to_predefined_pose('allZeros')
 	#ur5.go_to_pose(YellowBinPose)
@@ -352,60 +353,60 @@ def main():
 	# 	ur5.detach_box()
 	# 	ur5.remove_box()
 
-	x = {}
-	y = {}
-	#ur5.go_to_predefined_pose('allZeros')
-	ur5.hard_set_joint_angles(home_angles, 20)
-	for i in range(3):
-		rospy.sleep(1)
-		ur5.add_box('box', BoxPose)
-		rospy.sleep(1)
-		ur5.attach_box()
-		ur5.hard_set_joint_angles(greenBinAngles, 20)
-		y[ur5._computed_plan] = ur5._computed_time
-		print(ur5._computed_time)
-		ur5.detach_box()
-	 	ur5.remove_box()
-		ur5.hard_set_joint_angles(home_angles, 20)
-		x[ur5._computed_plan] = ur5._computed_time
-		print(ur5._computed_time)
-
-	file_path = ur5._file_path + 'greenBin_to_home.yaml'
-	plan = sorted(x.items(),key=lambda l: l[1])[0][0]
-	with open(file_path, 'w') as file_save:
-		yaml.dump(plan, file_save, default_flow_style=True)
-	file_path = ur5._file_path + 'home_to_greenBin.yaml'
-	plan = sorted(y.items(),key=lambda l: l[1])[0][0]
-	with open(file_path, 'w') as file_save:
-		yaml.dump(plan, file_save, default_flow_style=True)
-
-
-	# ur5.hard_set_joint_angles(home_angles, 2)
-	# for i in a[8:]:
-	# 	ur5._box_name = i[:-7]
-	# 	print('GOING TO {}'.format(ur5._box_name))
-	# 	ur5.hard_set_joint_angles(angles['{}_angles'.format(ur5._box_name)], 100)
-		
-	# 	if ur5._box_name == 'packagen00':
-	# 		file_path = ur5._file_path + 'allZeros_to_packagen00.yaml'
-	# 	else:
-	# 		file_path = ur5._file_path + 'home_to_{}.yaml'.format(ur5._box_name)
-
-	# 	with open(file_path, 'w') as file_save:
-	# 		yaml.dump(ur5._computed_plan, file_save, default_flow_style=True)
-		
-	# 	vacuum_gripper(1)
+	# x = {}
+	# y = {}
+	# #ur5.go_to_predefined_pose('allZeros')
+	# ur5.hard_set_joint_angles(home_angles, 20)
+	# for i in range(3):
+	# 	rospy.sleep(1)
+	# 	ur5.add_box('box', BoxPose)
+	# 	rospy.sleep(1)
 	# 	ur5.attach_box()
-	# 	ur5.hard_set_joint_angles(home_angles, 100)
-	# 	#ur5.go_to_pose(HomePose)
-	# 	file_path = ur5._file_path + '{}_to_home.yaml'.format(ur5._box_name)
-	# 	with open(file_path, 'w') as file_save:
-	# 		yaml.dump(ur5._computed_plan, file_save, default_flow_style=True)
-		
-	# 	vacuum_gripper(0)
+	# 	ur5.hard_set_joint_angles(greenBinAngles, 20)
+	# 	y[ur5._computed_plan] = ur5._computed_time
+	# 	print(ur5._computed_time)
 	# 	ur5.detach_box()
-	# 	ur5.remove_box()
+	#  	ur5.remove_box()
+	# 	ur5.hard_set_joint_angles(home_angles, 20)
+	# 	x[ur5._computed_plan] = ur5._computed_time
+	# 	print(ur5._computed_time)
+
+	# file_path = ur5._file_path + 'greenBin_to_home.yaml'
+	# plan = sorted(x.items(),key=lambda l: l[1])[0][0]
+	# with open(file_path, 'w') as file_save:
+	# 	yaml.dump(plan, file_save, default_flow_style=True)
+	# file_path = ur5._file_path + 'home_to_greenBin.yaml'
+	# plan = sorted(y.items(),key=lambda l: l[1])[0][0]
+	# with open(file_path, 'w') as file_save:
+	# 	yaml.dump(plan, file_save, default_flow_style=True)
+
+
+	ur5.hard_set_joint_angles(home_angles, 2)
+	for i in a[8:]:
+		ur5._box_name = i[:-7]
+		print('GOING TO {}'.format(ur5._box_name))
+		ur5.hard_set_joint_angles(angles['{}_angles'.format(ur5._box_name)], 100)
 		
+		if ur5._box_name == 'packagen00':
+			file_path = ur5._file_path + 'allZeros_to_packagen00_new.yaml'
+		else:
+			file_path = ur5._file_path + 'home_to_{}_new.yaml'.format(ur5._box_name)
+
+		with open(file_path, 'w') as file_save:
+			yaml.dump(ur5._computed_plan, file_save, default_flow_style=True)
+		
+		vacuum_gripper(1)
+		ur5.attach_box()
+		ur5.hard_set_joint_angles(home_angles, 100)
+		#ur5.go_to_pose(HomePose)
+		file_path = ur5._file_path + '{}_to_home_new.yaml'.format(ur5._box_name)
+		with open(file_path, 'w') as file_save:
+			yaml.dump(ur5._computed_plan, file_save, default_flow_style=True)
+		
+		vacuum_gripper(0)
+		ur5.detach_box()
+		ur5.remove_box()
+
 		
 	#ur5.hard_set_joint_angles(angles, 5)
 	# pose_values = ur5._group.get_current_pose().pose

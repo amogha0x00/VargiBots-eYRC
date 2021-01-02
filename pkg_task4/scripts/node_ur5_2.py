@@ -64,9 +64,6 @@ class Ur5Moveit:
 
 		rospy.loginfo('\033[94m' + " >>> Ur5Moveit init done." + '\033[0m')
 
-	def clear_octomap(self):
-		clear_octomap_service_proxy = rospy.ServiceProxy(self._robot_ns + "/clear_octomap", Empty)
-		return clear_octomap_service_proxy()
 
 	def moveit_play_planned_path_from_file(self, arg_file_path, arg_file_name):
 		file_path = arg_file_path + arg_file_name
@@ -82,7 +79,7 @@ class Ur5Moveit:
 		number_attempts = 0
 		flag_success = False
 
-		while ( (number_attempts <= arg_max_attempts) and (flag_success is False) ):
+		while (number_attempts <= arg_max_attempts) and (flag_success is False):
 			number_attempts += 1
 			flag_success = self.moveit_play_planned_path_from_file(arg_file_path, arg_file_name)
 			rospy.logwarn("attempts: {}".format(number_attempts) )
@@ -189,7 +186,13 @@ class Ur5Moveit:
 			Sets conveyor belt power to `power` after delay of `delay`
 		"""
 		rospy.sleep(delay)
-		self._conveyor_belt(power)
+		for i in range(5):
+			try:
+				self._conveyor_belt(power)
+				break
+			except rospy.service.ServiceException as error:
+				rospy.logerr(error)
+				rospy.logwarn("Retrying")
 
 	def cam_callback(self, cam):
 		"""
@@ -245,7 +248,6 @@ def main():
 		ur5_2.pick_box()
 		ur5_2.place_box()
 		i+=1
-	ur5_2.go_to_pose(ReqInfo.HomePose)
 
 	del ur5_2
 

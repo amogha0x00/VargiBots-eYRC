@@ -18,7 +18,7 @@ class Ur5Moveit:
 
 		self._robot_ns = '/'  + arg_robot_name
 		self._planning_group = "manipulator"
-		
+
 		moveit_commander.roscpp_initialize(sys.argv)
 		self._robot = moveit_commander.RobotCommander(robot_description= self._robot_ns + "/robot_description", ns=self._robot_ns)
 		self._scene = moveit_commander.PlanningSceneInterface(ns=self._robot_ns)
@@ -49,34 +49,28 @@ class Ur5Moveit:
 		rp = rospkg.RosPack()
 		self._pkg_path = rp.get_path('pkg_task4')
 		self._file_path = self._pkg_path + '/config/saved_trajectories{}/'.format(self._robot_ns)
-		rospy.loginfo( "Package Path: {}".format(self._file_path) )
+		rospy.loginfo("Package Path: {}".format(self._file_path) )
 
 
 		rospy.loginfo('\033[94m' + " >>> Ur5Moveit init done." + '\033[0m')
 
-	def clear_octomap(self):
-		clear_octomap_service_proxy = rospy.ServiceProxy(self._robot_ns + "/clear_octomap", Empty)
-		return clear_octomap_service_proxy()
-
 	def moveit_play_planned_path_from_file(self, arg_file_path, arg_file_name):
 		file_path = arg_file_path + arg_file_name
-		
+
 		with open(file_path, 'r') as file_open:
 			loaded_plan = yaml.load(file_open)
-		
+
 		ret = self._group.execute(loaded_plan)
-		# rospy.logerr(ret)
 		return ret
 
 	def moveit_hard_play_planned_path_from_file(self, arg_file_path, arg_file_name, arg_max_attempts):
 		number_attempts = 0
 		flag_success = False
 
-		while ( (number_attempts <= arg_max_attempts) and (flag_success is False) ):
+		while (number_attempts <= arg_max_attempts) and (flag_success is False):
 			number_attempts += 1
 			flag_success = self.moveit_play_planned_path_from_file(arg_file_path, arg_file_name)
 			rospy.logwarn("attempts: {}".format(number_attempts) )
-			# self.clear_octomap()
 
 	def wait_for_state_update(self, box_is_known=False, box_is_attached=False, timeout=4):
 		'''
@@ -117,7 +111,7 @@ class Ur5Moveit:
 		box_pose.header.frame_id = self._planning_frame
 		self._box_name = box_name
 		self._scene.add_box(self._box_name, box_pose, size=box_size)
-	
+
 		return self.wait_for_state_update(box_is_known=True, timeout=timeout)
 
 	def attach_box(self,timeout=4):
@@ -165,8 +159,8 @@ def main():
 	convear_belt = rospy.ServiceProxy('/eyrc/vb/conveyor/set_power', conveyorBeltPowerMsg)
 	#convear_belt(50)
 	ur5_1 = Ur5Moveit('ur5_1')
-	a = ['packagen00','packagen01','packagen02','packagen10','packagen11','packagen12','packagen20','packagen21','packagen22']
-	for i in a:
+	pkg_names = ['packagen00','packagen01','packagen02','packagen10','packagen11','packagen12','packagen20','packagen21','packagen22']
+	for i in pkg_names:
 		ur5_1._box_name = i
 		if ur5_1._box_name == 'packagen00':
 			ur5_1.moveit_hard_play_planned_path_from_file(ur5_1._file_path, 'allZeros_to_packagen00.yaml', 5)
