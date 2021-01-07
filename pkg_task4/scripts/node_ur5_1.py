@@ -7,7 +7,6 @@ import actionlib
 import rospkg
 from pkg_vb_sim.srv import vacuumGripper
 from pkg_vb_sim.srv import conveyorBeltPowerMsg
-from std_srvs.srv import Empty
 
 import yaml
 
@@ -20,11 +19,11 @@ class Ur5Moveit:
 		self._planning_group = "manipulator"
 
 		moveit_commander.roscpp_initialize(sys.argv)
-		self._robot = moveit_commander.RobotCommander(robot_description= self._robot_ns + "/robot_description", ns=self._robot_ns)
+		self._robot = moveit_commander.RobotCommander(robot_description=self._robot_ns + "/robot_description", ns=self._robot_ns)
 		self._scene = moveit_commander.PlanningSceneInterface(ns=self._robot_ns)
 		self._group = moveit_commander.MoveGroupCommander(self._planning_group, robot_description= self._robot_ns + "/robot_description", ns=self._robot_ns)
-		self._display_trajectory_publisher = rospy.Publisher( self._robot_ns + '/move_group/display_planned_path', moveit_msgs.msg.DisplayTrajectory, queue_size=1)
-		self._exectute_trajectory_client = actionlib.SimpleActionClient( self._robot_ns + '/execute_trajectory', moveit_msgs.msg.ExecuteTrajectoryAction)
+		self._display_trajectory_publisher = rospy.Publisher(self._robot_ns + '/move_group/display_planned_path', moveit_msgs.msg.DisplayTrajectory, queue_size=1)
+		self._exectute_trajectory_client = actionlib.SimpleActionClient(self._robot_ns + '/execute_trajectory', moveit_msgs.msg.ExecuteTrajectoryAction)
 		self._exectute_trajectory_client.wait_for_server()
 
 		self._planning_frame = self._group.get_planning_frame()
@@ -114,7 +113,7 @@ class Ur5Moveit:
 
 		return self.wait_for_state_update(box_is_known=True, timeout=timeout)
 
-	def attach_box(self,timeout=4):
+	def attach_box(self, timeout=4):
 		'''
 			Attaching Objects to the Robot
 		'''
@@ -159,7 +158,8 @@ def main():
 	convear_belt = rospy.ServiceProxy('/eyrc/vb/conveyor/set_power', conveyorBeltPowerMsg)
 	#convear_belt(50)
 	ur5_1 = Ur5Moveit('ur5_1')
-	pkg_names = ['packagen00','packagen01','packagen02','packagen10','packagen11','packagen12','packagen20','packagen21','packagen22']
+	pkg_names = ['packagen00', 'packagen01', 'packagen02', 'packagen10', 'packagen11',
+				'packagen12', 'packagen20', 'packagen21', 'packagen30']
 	for i in pkg_names:
 		ur5_1._box_name = i
 		if ur5_1._box_name == 'packagen00':
@@ -172,7 +172,7 @@ def main():
 		vacuum_gripper(0)
 		ur5_1.detach_box()
 		ur5_1.remove_box()
-	
+
 	del ur5_1
 
 if __name__ == '__main__':

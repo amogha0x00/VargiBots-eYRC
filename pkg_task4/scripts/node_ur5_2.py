@@ -11,7 +11,6 @@ import rospkg
 from pkg_vb_sim.srv import vacuumGripper
 from pkg_vb_sim.srv import conveyorBeltPowerMsg
 from pkg_vb_sim.msg import LogicalCameraImage
-from std_srvs.srv import Empty
 
 import yaml
 
@@ -127,7 +126,7 @@ class Ur5Moveit:
 
 		return self.wait_for_state_update(box_is_known=True, timeout=timeout)
 
-	def attach_box(self,timeout=4):
+	def attach_box(self, timeout=4):
 		'''
 			Attaching Objects to the Robot
 		'''
@@ -186,7 +185,7 @@ class Ur5Moveit:
 			Sets conveyor belt power to `power` after delay of `delay`
 		"""
 		rospy.sleep(delay)
-		for i in range(5):
+		for _ in range(5):
 			try:
 				self._conveyor_belt(power)
 				break
@@ -247,7 +246,7 @@ def main():
 	while not rospy.is_shutdown() and i < 9:
 		ur5_2.pick_box()
 		ur5_2.place_box()
-		i+=1
+		i += 1
 
 	del ur5_2
 

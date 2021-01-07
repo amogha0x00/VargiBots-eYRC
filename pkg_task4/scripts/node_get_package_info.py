@@ -11,11 +11,12 @@ class Camera1:
 
 	def __init__(self):
 		self.bridge = CvBridge()
-		self.image_sub = rospy.Subscriber("/eyrc/vb/camera_1/image_raw", Image, self.callback)
 		self.qr_threshold = 10
 		self.packages_info = {}
+		rospy.sleep(0.1)
 		self._start_time = rospy.get_time()
 		self._current_time = rospy.get_time()
+		self.image_sub = rospy.Subscriber("/eyrc/vb/camera_1/image_raw", Image, self.callback)
 
 	def get_qr_data(self, arg_image):
 		"""
@@ -45,12 +46,12 @@ class Camera1:
 		except CvBridgeError as e:
 			rospy.logerr(e)
 
-		roi = cv_image[290:920, 100:620]
+		roi = cv_image[290:920, 100:620] # crop to only package area
 		lower_bound = (0, 0, 0)
-		if self._current_time - self._start_time > 15:
-			self.qr_threshold += 1
+		if (self._current_time - self._start_time) > 15: # if 15 sec is passed after launching the node then
+			self.qr_threshold += 1					   # change the threshold value till all packages are detected
 			self.qr_threshold %= 256
-			rospy.logwarn("Default Config Not Working Trying New Configs")
+			rospy.logwarn("Default Config Not Working Trying New Configs: {}".format(self.qr_threshold))
 		upper_bound = (self.qr_threshold, self.qr_threshold, self.qr_threshold)
 		thresholded = cv2.inRange(roi, lower_bound, upper_bound)
 		inv = 255-thresholded
