@@ -30,7 +30,7 @@
   <!-- Recording Bag File for Submission -->
   <group if="$(arg record)">
     <node name="rosbag_record_pick" pkg="rosbag" type="record"
-    args="record -O $(find pkg_task4)/bag_files/$(arg rec_name) --chunksize=10 /eyrc/vb/ur5_1/vacuum_gripper/logical_camera/ur5_1" output="screen"/>
+    args="record -O $(find pkg_task4)/bag_files/$(arg rec_name) --chunksize=10 /eyrc/vb/ur5_1/vacuum_gripper/logical_camera/ur5_1 /eyrc/vb/ur5_2/vacuum_gripper/logical_camera/ur5_2" output="screen"/>
   </group>
 
   <!-- launch node which loads packages color info into parameter server -->

@@ -40,7 +40,7 @@ class Ur5Moveit:
 		self._eef_link = self._group.get_end_effector_link()
 		self._group_names = self._robot.get_group_names()
 		self._box_name = ''
-
+		self._group.set_planning_time(50)
 		# Attribute to store computed trajectory by the planner	
 		self._computed_plan = ''
 		# Current State of the Robot is needed to add box to planning scene
@@ -362,21 +362,21 @@ def main():
 	'packagen22_angles' : [-2.8152248676466956, -1.6434319637221213, 2.0297073347102135, 2.7559627506021194, -0.3035895625726175, 0],
 	'packagen30_angles' : [-0.9607709954967598, -1.252967133724633, 2.2894529340625276, 2.1039636047946395, -2.158576423925589, 0]
 	}
-	a = ['packagen00_angles','packagen01_angles','packagen02_angles','packagen10_angles','packagen11_angles','packagen12_angles','packagen20_angles','packagen21_angles','packagen22_angles']
+	a = ['packagen00_angles','packagen01_angles','packagen02_angles','packagen10_angles','packagen11_angles','packagen12_angles','packagen20_angles','packagen21_angles','packagen30_angles']
 	redBinAngles = [-1.4021989827315986, -2.419851300424532, -1.6751688763338333, -0.6181097611262976, 1.5708253066354905, 0]
 	greenBinAngles = [-1.7394663777934447, -0.7215250654445988, 1.674853829440881, -2.523859580495726, -1.571644619132984, 0]
 	yellowBinAngles = [-0.1460482615680263, -0.5637933949566794, 1.3095397138479834, -2.315863329865439, -1.5710326593084032, 0]
 
 	vacuum_gripper = rospy.ServiceProxy('/eyrc/vb/ur5/activate_vacuum_gripper/ur5_1', vacuumGripper)
 	convear_belt = rospy.ServiceProxy('/eyrc/vb/conveyor/set_power', conveyorBeltPowerMsg)
-	convear_belt(90)
+	#convear_belt(90)
 
 	ur5._box_name = 'packagen30'
 	ur5.hard_set_joint_angles(home_angles, 20)
-	ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'home_to_packagen30.yaml', 5)
+	ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'home_to_packagen22.yaml', 5)
 	vacuum_gripper(1)
 	ur5.attach_box()
-	ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'packagen30_to_home.yaml', 5)
+	ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'packagen22_to_home.yaml', 5)
 
 	#ur5.go_to_predefined_pose('allZeros')
 	#ur5.go_to_pose(YellowBinPose)
@@ -435,7 +435,7 @@ def main():
 	# 	vacuum_gripper(1)
 	# 	ur5.attach_box()
 	# 	ur5.hard_set_joint_angles(home_angles, 1000)
-	# 	file_path = ur5._file_path + '{}_to_home_new.yaml'.format(ur5._box_name)
+	# 	file_path = ur5._file_path + '{}_to_home_new_new_new.yaml'.format(ur5._box_name)
 	# 	with open(file_path, 'w') as file_save:
 	# 		yaml.dump(ur5._computed_plan, file_save, default_flow_style=True)
 		
