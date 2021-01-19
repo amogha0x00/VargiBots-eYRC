@@ -371,7 +371,7 @@ def main():
 	convear_belt = rospy.ServiceProxy('/eyrc/vb/conveyor/set_power', conveyorBeltPowerMsg)
 	#convear_belt(90)
 
-	ur5._box_name = 'packagen30'
+	ur5._box_name = 'packagen22'
 	ur5.hard_set_joint_angles(home_angles, 20)
 	ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'home_to_packagen22.yaml', 5)
 	vacuum_gripper(1)

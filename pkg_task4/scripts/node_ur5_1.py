@@ -159,7 +159,7 @@ def main():
 	#convear_belt(50)
 	ur5_1 = Ur5Moveit('ur5_1')
 	pkg_names = ['packagen00', 'packagen01', 'packagen02', 'packagen10', 'packagen11',
-				'packagen12', 'packagen20', 'packagen21', 'packagen30']
+				'packagen12', 'packagen20', 'packagen21', 'packagen22']
 	for i in pkg_names:
 		ur5_1._box_name = i
 		if ur5_1._box_name == 'packagen00':
