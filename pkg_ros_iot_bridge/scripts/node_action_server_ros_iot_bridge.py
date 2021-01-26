@@ -14,7 +14,7 @@ from pkg_ros_iot_bridge.msg import msgRosIotFeedback  # Message Class that is us
 from pkg_ros_iot_bridge.msg import msgMqttSub  # Message Class for MQTT Subscription Messages
 
 from pyiot import iot  # Custom Python Module to perfrom MQTT Tasks
-
+from ast import literal_eval
 
 class ActionServerRosIoTBridge:
 
@@ -184,9 +184,7 @@ class ActionServerRosIoTBridge:
 				# update_spreadsheet(spreadsheet_id, id, 'team_id', 'unique_id', '{'turtle_x': x, 'turtle_y': y, 'turtle_theta': theta,...,..}')
 				ret = iot.update_spreadsheet(goal.topic, # using topic to send spreadsheet_id 
 											  self._config_sheet_name,
-											  'VB_1823',  # hardcoded team id ;)
-											  'EsNEciqV',  # hardcoded unique id ;)
-											  goal.message # data points with column names in dict format str
+											  literal_eval(goal.message) # data points with column names in dict format str
 											)
 
 				if ret == 0:

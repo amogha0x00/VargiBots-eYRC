@@ -4,7 +4,7 @@
   <arg name="rec_name" default="t4.bag"/>
 
   <!-- Launch task4 simulation in Gazebo --> 
-  <include file="$(find pkg_vb_sim)/launch/task4_simulation.launch" />
+  <include file="$(find pkg_vb_sim)/launch/task5_simulation.launch" />
   <!-- ************************************************************* -->
 
   <!-- Launch two move_group nodes for the two UR5 Arms -->

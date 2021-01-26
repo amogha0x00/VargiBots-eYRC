@@ -6,10 +6,8 @@
 
 """
 
-from ast import literal_eval
 import paho.mqtt.client as mqtt
 import requests
-
 
 
 def on_connect(client, userdata, flags, rc):
@@ -39,17 +37,16 @@ def mqtt_publish(broker_url, broker_port, pub_topic, payload, qos):
 	return pub_info[0]
 
 
-def update_spreadsheet(spread_sheet_id, sheet_name, team_id, unique_id, data_points_dict_str):
+def update_spreadsheet(spread_sheet_id, sheet_name, data_points_dict):
 	'''
 		This function makes a GET request to any webapp of given "spread_sheet_id" with any number of datapoints 
-		given through "data_points_dict_str" string
-		ex: data_points_dict_str = "{ 'turtle_x': 10, 'turtle_y': 10, 'turtle_theta': 2}" pushes 10 to turtle_x and turtle_y column
+		given through "data_points_dict"
+		ex: data_points_dict = { 'turtle_x': 10, 'turtle_y': 10, 'turtle_theta': 2} pushes 10 to turtle_x and turtle_y column
 		and 2 to turtle_theta column in this format there could be any number of data points
 	'''
-	parameters = {'id':sheet_name, 'team_id':team_id, 'unique_id':unique_id}
+	parameters = {'id':sheet_name, 'Team Id':'VB#1823', 'Unique Id':'EsNEciqV'}
 	url = "https://script.google.com/macros/s/" + spread_sheet_id + "/exec"
 
-	data_points_dict = literal_eval(data_points_dict_str) # converts dict inside the string to dict
 	parameters.update(data_points_dict) # appends datapoints to parameters
 
 	response = requests.get(url, params=parameters)

@@ -40,7 +40,7 @@ class Ur5Moveit:
 		self._eef_link = self._group.get_end_effector_link()
 		self._group_names = self._robot.get_group_names()
 		self._box_name = ''
-		self._group.set_planning_time(50)
+		self._group.set_planning_time(99)
 		# Attribute to store computed trajectory by the planner	
 		self._computed_plan = ''
 		# Current State of the Robot is needed to add box to planning scene
@@ -360,26 +360,34 @@ def main():
 	'packagen20_angles' : [-0.9605764672406538, -1.643735681421231, 2.029592653976728, 2.756541135143788, -2.159385980446242, 0],
 	'packagen21_angles' : [-2.1173231602835703, -2.060962957306092, 2.315577997893504, 2.886384193245158, -1.0024981825093517, 0],
 	'packagen22_angles' : [-2.8152248676466956, -1.6434319637221213, 2.0297073347102135, 2.7559627506021194, -0.3035895625726175, 0],
-	'packagen30_angles' : [-0.9607709954967598, -1.252967133724633, 2.2894529340625276, 2.1039636047946395, -2.158576423925589, 0]
+	#'packagen30_angles' : [-0.9607709954967598, -1.252967133724633, 2.2894529340625276, 2.1039636047946395, -2.158576423925589, 0],
+	'packagen30_angles' : [-0.9608998456418254, -1.6216061371065917, 2.0668353024057193, -0.4462631714471632, 2.158874320501596, 0],
+	#'packagen31_angles' : [2.1176962476554273, -1.0990099412474503, -2.361680348532907, -2.8222422026694742, -1.045240776091826, 0],
+	'packagen31_angles' : [-2.117204781287308, -2.0420540162747205, 2.361323959613836, -0.3181725103932411, 1.0033663519541758, 0],
+	'packagen32_angles' : [0.9605746664472798, -1.520620110567612, -2.0664038248362546, -2.6969543317823748, -2.202824228465423, 0]
 	}
-	a = ['packagen00_angles','packagen01_angles','packagen02_angles','packagen10_angles','packagen11_angles','packagen12_angles','packagen20_angles','packagen21_angles','packagen30_angles']
+	a = ['packagen00_angles','packagen01_angles','packagen02_angles','packagen10_angles','packagen11_angles','packagen12_angles','packagen20_angles', 'packagen21_angles', 'packagen22_angles', 'packagen30_angles', 'packagen31_angles', 'packagen32_angles']
 	redBinAngles = [-1.4021989827315986, -2.419851300424532, -1.6751688763338333, -0.6181097611262976, 1.5708253066354905, 0]
 	greenBinAngles = [-1.7394663777934447, -0.7215250654445988, 1.674853829440881, -2.523859580495726, -1.571644619132984, 0]
 	yellowBinAngles = [-0.1460482615680263, -0.5637933949566794, 1.3095397138479834, -2.315863329865439, -1.5710326593084032, 0]
 
 	vacuum_gripper = rospy.ServiceProxy('/eyrc/vb/ur5/activate_vacuum_gripper/ur5_1', vacuumGripper)
 	convear_belt = rospy.ServiceProxy('/eyrc/vb/conveyor/set_power', conveyorBeltPowerMsg)
-	#convear_belt(90)
+	convear_belt(90)
 
-	ur5._box_name = 'packagen22'
-	ur5.hard_set_joint_angles(home_angles, 20)
-	ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'home_to_packagen22.yaml', 5)
-	vacuum_gripper(1)
-	ur5.attach_box()
-	ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'packagen22_to_home.yaml', 5)
+	# ur5._box_name = 'packagen30'
+	# ur5.hard_set_joint_angles(home_angles, 20)
+	# ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'home_to_{}.yaml'.format(ur5._box_name), 5)
+	# #ur5.hard_set_joint_angles(angles['{}_angles'.format(ur5._box_name)], 100)
+	# vacuum_gripper(1)
+	# ur5.attach_box()
+	# ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, '{}_to_home.yaml'.format(ur5._box_name), 5)
+	# vacuum_gripper(0)
+	# ur5.detach_box()
+	# ur5.remove_box()
 
 	#ur5.go_to_predefined_pose('allZeros')
-	#ur5.go_to_pose(YellowBinPose)
+	#ur5.go_to_pose(BoxPose)
 	# ur5.attach_box()
 	# ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'packagen01_to_home.yaml'.format(ur5._box_name), 5)
 	# for i in a:
@@ -413,25 +421,26 @@ def main():
 	# 	x[ur5._computed_plan] = ur5._computed_time
 	# 	print(ur5._computed_time)
 
-	# y = {}
-	# box_name = 'packagen22'
-	# for i in range(20):
-	# 	ur5.hard_set_joint_angles(home_angles, 20)
-	# 	ur5.hard_set_joint_angles(angles['{}_angles'.format(box_name)], 100)
-	# 	y[ur5._computed_plan] = ur5._computed_time
-	# 	print(ur5._computed_time)
+	y = {}
+	box_name = 'packagen32'
+	for i in range(10):
+		ur5.hard_set_joint_angles(home_angles, 20)
+		ur5.hard_set_joint_angles(angles['{}_angles'.format(box_name)], 100)
+		y[ur5._computed_plan] = ur5._computed_time
+		print(ur5._computed_time)
 
-	# file_path = ur5._file_path + 'home_to_{}_new.yaml'.format(box_name)	
-	# plan = sorted(y.items(),key=lambda l: l[1])[0][0]
-	# with open(file_path, 'w') as file_save:
-	# 	yaml.dump(plan, file_save, default_flow_style=True)
+	file_path = ur5._file_path + 'home_to_{}_new.yaml'.format(box_name)	
+	plan = sorted(y.items(),key=lambda l: l[1])[0][0]
+	with open(file_path, 'w') as file_save:
+		yaml.dump(plan, file_save, default_flow_style=True)
 
 
 	# ur5.hard_set_joint_angles(home_angles, 2)
-	# for i in a[8:]:
+	# for i in a[9:10]:
 	# 	ur5._box_name = i[:-7]
 	# 	print('GOING TO {}'.format(ur5._box_name))
 	# 	ur5.moveit_hard_play_planned_path_from_file(ur5._file_path, 'home_to_{}.yaml'.format(ur5._box_name), 5)
+	# 	#ur5.hard_set_joint_angles(angles['{}_angles'.format(ur5._box_name)], 100)
 	# 	vacuum_gripper(1)
 	# 	ur5.attach_box()
 	# 	ur5.hard_set_joint_angles(home_angles, 1000)
