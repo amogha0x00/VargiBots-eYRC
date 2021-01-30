@@ -421,18 +421,23 @@ def main():
 	# 	x[ur5._computed_plan] = ur5._computed_time
 	# 	print(ur5._computed_time)
 
-	y = {}
-	box_name = 'packagen32'
-	for i in range(10):
-		ur5.hard_set_joint_angles(home_angles, 20)
-		ur5.hard_set_joint_angles(angles['{}_angles'.format(box_name)], 100)
-		y[ur5._computed_plan] = ur5._computed_time
-		print(ur5._computed_time)
+	ur5.set_joint_angles(angles['packagen00_angles'])
+	# file_path = ur5._file_path + 'allZeros_to_home.yaml'
+	# with open(file_path, 'w') as file_save:
+	# 	yaml.dump(ur5._computed_plan, file_save, default_flow_style=True)
 
-	file_path = ur5._file_path + 'home_to_{}_new.yaml'.format(box_name)	
-	plan = sorted(y.items(),key=lambda l: l[1])[0][0]
-	with open(file_path, 'w') as file_save:
-		yaml.dump(plan, file_save, default_flow_style=True)
+	# y = {}
+	# box_name = 'packagen32'
+	# for i in range(10):
+	# 	ur5.hard_set_joint_angles(home_angles, 20)
+	# 	ur5.hard_set_joint_angles(angles['{}_angles'.format(box_name)], 100)
+	# 	y[ur5._computed_plan] = ur5._computed_time
+	# 	print(ur5._computed_time)
+
+	# file_path = ur5._file_path + 'home_to_{}_new.yaml'.format(box_name)	
+	# plan = sorted(y.items(),key=lambda l: l[1])[0][0]
+	# with open(file_path, 'w') as file_save:
+	# 	yaml.dump(plan, file_save, default_flow_style=True)
 
 
 	# ur5.hard_set_joint_angles(home_angles, 2)

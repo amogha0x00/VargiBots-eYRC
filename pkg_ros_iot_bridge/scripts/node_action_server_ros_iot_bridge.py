@@ -43,11 +43,8 @@ class ActionServerRosIoTBridge:
 		self._config_mqtt_pub_topic = param_config_pyiot['mqtt']['topic_pub']
 		self._config_mqtt_qos = param_config_pyiot['mqtt']['qos']
 		self._config_mqtt_sub_cb_ros_topic = param_config_pyiot['mqtt']['sub_cb_ros_topic']
-		self._config_sheet_name = 'task1'
 
 
-		#print('\n\nPushing data on Spreadsheet ID : {} \n Sheet Name : {} '.format(self._config_spread_sheet_id, self._config_sheet_name))
-		#print('Pushing data on Spreadsheet ID : {} \n Sheet Name : {} \n\n'.format(self._config_my_spread_sheet_id, self._config_my_sheet_name))
 		print('\n\nPublish msg as "start" on  : {}'.format(self._config_mqtt_sub_topic))
 		print('Subscribe to receive result on : {}\n'.format(self._config_mqtt_pub_topic))
 
@@ -112,15 +109,14 @@ class ActionServerRosIoTBridge:
 				return
 
 		elif goal.protocol == 'http':
-			if (goal.mode == "get") or (goal.mode == "post"):
-				goal_handle.set_accepted()
+			goal_handle.set_accepted()
 
-				# Start a new thread to process new goal from the client (For Asynchronous Processing of Goals)
-				# 'self.process_goal' - is the function pointer which points to a function that will process incoming Goals
-				thread = threading.Thread(name="worker",
-										  target=self.process_goal,
-										  args=(goal_handle,))
-				thread.start()
+			# Start a new thread to process new goal from the client (For Asynchronous Processing of Goals)
+			# 'self.process_goal' - is the function pointer which points to a function that will process incoming Goals
+			thread = threading.Thread(name="worker",
+									  target=self.process_goal,
+									  args=(goal_handle,))
+			thread.start()
 		else:
 			goal_handle.set_rejected()
 			return
@@ -176,23 +172,23 @@ class ActionServerRosIoTBridge:
 
 		elif goal.protocol == "http":
 			rospy.logwarn("HTTP")
-			if goal.mode == "get":
-				rospy.logwarn("HTTP GET Goal ID: " + str(goal_id.id))
+			
+			rospy.logwarn("HTTP GET Goal ID: " + str(goal_id.id))
 
-				rospy.logwarn(goal.topic + " > " + goal.message)
+			rospy.logwarn(goal.topic + " > " + goal.message)
 
-				# update_spreadsheet(spreadsheet_id, id, 'team_id', 'unique_id', '{'turtle_x': x, 'turtle_y': y, 'turtle_theta': theta,...,..}')
-				ret = iot.update_spreadsheet(goal.topic, # using topic to send spreadsheet_id 
-											  self._config_sheet_name,
-											  literal_eval(goal.message) # data points with column names in dict format str
-											)
+			# update_spreadsheet(spreadsheet_id, id, 'team_id', 'unique_id', '{'turtle_x': x, 'turtle_y': y, 'turtle_theta': theta,...,..}')
+			ret = iot.update_spreadsheet(goal.topic, # using topic to send spreadsheet_id 
+										goal.mode,
+										literal_eval(goal.message) # data points with column names in dict format str
+										)
 
-				if ret == 0:
-					rospy.loginfo("Updating Spreadsheet Successful.")
-					result.flag_success = True
-				else:
-					rospy.logerr("Updating Spreadsheet Failed")
-					result.flag_success = False
+			if ret == 0:
+				rospy.loginfo("Updating Spreadsheet Successful.")
+				result.flag_success = True
+			else:
+				rospy.logerr("Updating Spreadsheet Failed")
+				result.flag_success = False
 
 		rospy.loginfo("Send goal result to client")
 		if result.flag_success == True:
