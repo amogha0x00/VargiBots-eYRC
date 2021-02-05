@@ -37,12 +37,8 @@ The packages to be delivered have their own priorities. Packages having a higher
 * At start
 ![rqt_graph](rosgraph.png)
 
-<center><button type="button" style="color: black; background-color: #FFFFFF; padding: 5px 17px; border-radius: 5px; border: 2px solid red;" onclick=" window.open('rosgraph.png','_blank')">Expand Image</button></center>
-
 * After 1 min
 ![rqt_graph2](rosgraph2.png)
-
-<center><button type="button" style="color: black; background-color: #FFFFFF; padding: 5px 17px; border-radius: 5px; border: 2px solid red;" onclick=" window.open('rosgraph2.png','_blank')">Expand Image</button></center>
 
 
 ## **API Documentation**
