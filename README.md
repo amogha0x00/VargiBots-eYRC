@@ -1,7 +1,6 @@
 <h1 style="color: red"> <strong>eYRC 2020-21: Vargi Bots (VB#1823) </strong></h1>
 
 ## **Introduction**
----
 
 Theme: Vargi Bots (VB)
 
@@ -12,11 +11,10 @@ The arena is an automated warehouse setting where essential packages are require
 The packages to be delivered have their own priorities. Packages having a higher priority are intended for a natural disaster or a pandemic situation. Other packages with lower priorities are for general purposes.
 
 ## **Video of Implementation**
----
-[![Watch the video](https://img.youtube.com/vi/lUk19Uxie0s/maxresdefault.jpg)](https://youtu.be/lUk19Uxie0s)
+
+[![Watch the video](https://img.youtube.com/vi/BlTF1MuH6QU/maxresdefault.jpg)](https://youtu.be/BlTF1MuH6QU)
 
 ## **Implementation**
----
 
 * Once all the packages are spawn the Camera#1 which is facing the shelf identifies the package using QR decoding method.
 * Once all the packages color are detected the info is loaded to parameter server and the Inventory Management Spreadsheet of the warehouse is updated 
@@ -42,7 +40,7 @@ The packages to be delivered have their own priorities. Packages having a higher
 
 
 ## **API Documentation**
----
+
 ### Project layout
 
     pkg_task5/
