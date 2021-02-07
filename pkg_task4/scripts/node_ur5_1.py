@@ -56,10 +56,20 @@ class Ur5Moveit:
 	def moveit_play_planned_path_from_file(self, arg_file_path, arg_file_name):
 		file_path = arg_file_path + arg_file_name
 
+		before_joints = self._group.get_current_joint_values() 
+
+
 		with open(file_path, 'r') as file_open:
 			loaded_plan = yaml.load(file_open)
 
 		ret = self._group.execute(loaded_plan)
+
+		after_joints = self._group.get_current_joint_values()
+
+		squared_error = sum([(i-j)**2 for i, j in zip(before_joints, after_joints)])
+		if(squared_error > 0.1):
+			rospy.logerr("It WORKS !!!!!!!")
+			return True
 		return ret
 
 	def moveit_hard_play_planned_path_from_file(self, arg_file_path, arg_file_name, arg_max_attempts):

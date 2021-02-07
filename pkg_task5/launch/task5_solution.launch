@@ -1,5 +1,8 @@
 <launch>
 
+  <arg name="record" default="false"/>
+  <arg name="rec_name" default="t5.bag"/>
+
   <!-- Launch task5 simulation in Gazebo --> 
   <include file="$(find pkg_vb_sim)/launch/task5_simulation.launch" />
   <!-- ************************************************************* -->
@@ -7,30 +10,43 @@
   <!-- Launch two move_group nodes for the two UR5 Arms -->
   <include file="$(find pkg_vb_sim)/launch/two_ur5_move_group.launch" />
   <!-- ************************************************************* -->
-  
-  <group ns="ur5_1">
 
-    <!-- load planning scene into ur5_1 rviz window and publish it -->
+  <!-- Load pyiot config into parameter server and launch ros_iot_bridge node -->
+	<rosparam file ="$(find pkg_ros_iot_bridge)/config/config_pyiot.yaml"/>
+	<node pkg="pkg_ros_iot_bridge" type="node_action_server_ros_iot_bridge.py" name="node_action_server_ros_iot_bridge" output="screen"/>
+  <!-- **************************************************************************************************************************** -->
+
+  <!-- load planning scene into ur5_1 rviz window and publish it -->
+  <group ns="ur5_1">
     <arg name="scene_file" default="$(find pkg_task5)/config/rviz/ur5_1_planning_scene_with_boxs.scene"/> 
     <node name = "moveit_publish_scene_from_text" pkg= "moveit_ros_planning" type = "moveit_publish_scene_from_text" args= "$(arg scene_file)"/>
-
   </group>
 
+  <!-- load planning scene into ur5_2 rviz window and publish it -->
   <group ns="ur5_2">
-
-    <!-- load planning scene into ur5_2 rviz window and publish it -->
     <arg name="scene_file" default="$(find pkg_task5)/config/rviz/ur5_2_planning_scene.scene"/> 
     <node name = "moveit_publish_scene_from_text" pkg= "moveit_ros_planning" type = "moveit_publish_scene_from_text" args= "$(arg scene_file)"/>
-
   </group>
 
-    <!-- launch node which loads packages color info into parameter server -->
+  <!-- Recording Bag File for Submission -->
+  <group if="$(arg record)">
+    <node name="rosbag_record_pick" pkg="rosbag" type="record"
+    args="record -O $(find pkg_task5)/bag_files/$(arg rec_name) --chunksize=10 /eyrc/vb/ur5_1/vacuum_gripper/logical_camera/ur5_1 /eyrc/vb/ur5_2/vacuum_gripper/logical_camera/ur5_2" output="screen"/>
+  </group>
+
+  <!-- launch node which loads packages color info into parameter server -->
   <!-- It waits for all the packages to spawn then loads their color info to parameter server -->
   <node name= "node_get_package_info" pkg= "pkg_task5" type="node_get_package_info.py" output="screen"/>
   <!-- ********************************************************************************************* -->
-
-  <rosparam file ="$(find pkg_ros_iot_bridge)/config/config_pyiot.yaml"/>
-  <node pkg="pkg_ros_iot_bridge" type="node_action_server_ros_iot_bridge.py" name="node_action_server_ros_iot_bridge" output="screen"/>
+  
+  <!-- launch node which controls ur5_1 -->
+  <!-- Picks and places packages from self to conveyor belt from packagen00 to 22 -->
   <node name= "node_ur5_1" pkg= "pkg_task5" type="node_ur5_1.py" output="screen"/>
+  <!-- *********************************************************************** -->
+
+  <!-- launch node which controls ur5_2 -->
+  <!-- Uses packages color info in parameter server loaded by node `node_get_package_info.py` to sort the packages --> 
   <node name= "node_ur5_2" pkg= "pkg_task5" type="node_ur5_2.py" output="screen"/>
+  <!-- *********************************************************************** -->
+
 </launch>

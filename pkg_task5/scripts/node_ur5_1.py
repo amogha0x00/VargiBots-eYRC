@@ -1,37 +1,42 @@
 #!/usr/bin/env python
+import datetime
+import json
 import sys
-import rospy
+import threading
+import time
+
+import actionlib
 import moveit_commander
 import moveit_msgs.msg
-import actionlib
 import rospkg
-from pkg_vb_sim.srv import vacuumGripper
-from pkg_vb_sim.srv import conveyorBeltPowerMsg
-import json
-
+import rospy
+import yaml
 from pkg_ros_iot_bridge.msg import msgMqttSub  # Message Class for MQTT Subscription Messages
 from pkg_ros_iot_bridge.msg import msgRosIotAction  # Message Class that is used by ROS Actions internally
 from pkg_ros_iot_bridge.msg import msgRosIotGoal  # Message Class that is used for Goal Messages
 from pkg_ros_iot_bridge.msg import msgRosIotResult  # Message Class that is used for Result Messages
-from pkg_ros_iot_bridge.msg import msgRosIotFeedback  # Message Class that is used for Feedback Messages
+from pkg_vb_sim.srv import conveyorBeltPowerMsg
+from pkg_vb_sim.srv import vacuumGripper
 
-import yaml
-import datetime
-import time
 
 class Ur5Moveit:
 
 	# Constructor
 	def __init__(self, arg_robot_name):
 
-		self._robot_ns = '/'  + arg_robot_name
+		self._robot_ns = '/' + arg_robot_name
 		self._planning_group = "manipulator"
 		moveit_commander.roscpp_initialize(sys.argv)
-		self._robot = moveit_commander.RobotCommander(robot_description=self._robot_ns + "/robot_description", ns=self._robot_ns)
+		self._robot = moveit_commander.RobotCommander(robot_description=self._robot_ns + "/robot_description",
+													  ns=self._robot_ns)
 		self._scene = moveit_commander.PlanningSceneInterface(ns=self._robot_ns)
-		self._group = moveit_commander.MoveGroupCommander(self._planning_group, robot_description= self._robot_ns + "/robot_description", ns=self._robot_ns)
-		self._display_trajectory_publisher = rospy.Publisher(self._robot_ns + '/move_group/display_planned_path', moveit_msgs.msg.DisplayTrajectory, queue_size=1)
-		self._exectute_trajectory_client = actionlib.SimpleActionClient(self._robot_ns + '/execute_trajectory', moveit_msgs.msg.ExecuteTrajectoryAction)
+		self._group = moveit_commander.MoveGroupCommander(self._planning_group,
+														  robot_description=self._robot_ns + "/robot_description",
+														  ns=self._robot_ns)
+		self._display_trajectory_publisher = rospy.Publisher(self._robot_ns + '/move_group/display_planned_path',
+															 moveit_msgs.msg.DisplayTrajectory, queue_size=1)
+		self._exectute_trajectory_client = actionlib.SimpleActionClient(self._robot_ns + '/execute_trajectory',
+																		moveit_msgs.msg.ExecuteTrajectoryAction)
 		self._exectute_trajectory_client.wait_for_server()
 
 		self._planning_frame = self._group.get_planning_frame()
@@ -51,23 +56,32 @@ class Ur5Moveit:
 		rospy.loginfo(
 			'\033[94m' + "Group Names: {}".format(self._group_names) + '\033[0m')
 
-
 		rp = rospkg.RosPack()
 		self._pkg_path = rp.get_path('pkg_task5')
 		self._file_path = self._pkg_path + '/config/saved_trajectories{}/'.format(self._robot_ns)
-		rospy.loginfo("Package Path: {}".format(self._file_path) )
-
+		rospy.loginfo("Package Path: {}".format(self._file_path))
 
 		rospy.loginfo('\033[94m' + " >>> Ur5Moveit init done." + '\033[0m')
 
 	def moveit_play_planned_path_from_file(self, arg_file_path, arg_file_name):
 		file_path = arg_file_path + arg_file_name
+		for _ in range(5):
+			before_joints = self._group.get_current_joint_values()
 
 		with open(file_path, 'r') as file_open:
 			loaded_plan = yaml.load(file_open)
 
 		ret = self._group.execute(loaded_plan)
-		print(self._group.get_current_joint_values())
+
+		for _ in range(5):
+			after_joints = self._group.get_current_joint_values()
+
+		# This needed only because even if arm completed the trejectory 
+		# It was returning Flase with error ABORTED 
+		# so hard_play version of this function was trying again and and unnessarlly
+		squared_error = sum([(i - j) ** 2 for i, j in zip(before_joints, after_joints)])
+		if squared_error > 6.5:  # this means arm has moved enough so trajectory was executed
+			return True  # calculated by measuring difference square of all the angles
 		return ret
 
 	def moveit_hard_play_planned_path_from_file(self, arg_file_path, arg_file_name, arg_max_attempts):
@@ -77,10 +91,10 @@ class Ur5Moveit:
 		while (number_attempts <= arg_max_attempts) and (flag_success is False):
 			number_attempts += 1
 			flag_success = self.moveit_play_planned_path_from_file(arg_file_path, arg_file_name)
-			rospy.logwarn("attempts: {}".format(number_attempts) )
+			rospy.logwarn("attempts: {}".format(number_attempts))
 
 	def wait_for_state_update(self, box_is_known=False, box_is_attached=False, timeout=4):
-		'''
+		"""
 			Ensuring Collision Updates Are Received
 			^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 			If the Python node dies before publishing a collision object update message, the message
@@ -90,7 +104,7 @@ class Ur5Moveit:
 			We call this function after adding,removing, attaching or detaching an object
 			in the planning scene. We then wait until the updates have been made or
 			``timeout`` seconds have passed
-		'''
+		"""
 		start = rospy.get_time()
 		seconds = rospy.get_time()
 		while (seconds - start < timeout) and not rospy.is_shutdown():
@@ -106,10 +120,10 @@ class Ur5Moveit:
 			# Sleep so that we give other threads time on the processor
 			rospy.sleep(0.1)
 			seconds = rospy.get_time()
-			# If we exited the while loop without returning then we timed out
+		# If we exited the while loop without returning then we timed out
 		return False
 
-	def add_box(self, box_name, box_pose, timeout=4):	
+	def add_box(self, box_name, box_pose, timeout=4):
 		""""
 			Adding Objects to the Planning Scene
 			First, we will create a box in the planning scene at box_pose
@@ -122,9 +136,9 @@ class Ur5Moveit:
 		return self.wait_for_state_update(box_is_known=True, timeout=timeout)
 
 	def attach_box(self, timeout=4):
-		'''
+		"""
 			Attaching Objects to the Robot
-		'''
+		"""
 		self._scene.attach_box(self._eef_link, self._box_name, touch_links=[self._eef_link])
 
 		# We wait for the planning scene to update.
@@ -171,13 +185,13 @@ class ActionClientRosIoTBridge:
 		param_config_pyiot = rospy.get_param('config_pyiot')
 		self._config_mqtt_pub_topic = param_config_pyiot['mqtt']['topic_pub']
 		self._config_spread_sheet_id = param_config_pyiot['google_apps']['spread_sheet_id']
-		self._config_my_spread_sheet_id = "AKfycbzh5VbH9ZYzlebU6DCewMO3qq25OoGGEgvt_2nRbR0gtE5Cp5K0"
+		self._config_submission_spread_sheet_id = param_config_pyiot['google_apps']['submission_spread_sheet_id']
 		# Wait for Action Server that will use the action - '/action_ros_iot' to start
 		self._ac.wait_for_server()
 		rospy.loginfo("Action server ROS Iot Bridge is up, we can send goals.")
 		rospy.Subscriber('/ros_iot_bridge/mqtt/sub', msgMqttSub, self.orders_callback)
 		self._orders_to_dispatch = []
-
+		self._flag_lock = 0
 
 	# This function will be called when there is a change of state in the Action Client State Machine
 	def on_transition(self, goal_handle):
@@ -217,8 +231,8 @@ class ActionClientRosIoTBridge:
 
 			if result.flag_success == True:
 				rospy.loginfo("Goal successfully completed. Client Goal Handle #: " + str(index))
-				# self._goal_handles.remove(goal_handle)
-				# rospy.loginfo("Client Goal Handle #: {} removed".format(index))
+			# self._goal_handles.remove(goal_handle)
+			# rospy.loginfo("Client Goal Handle #: {} removed".format(index))
 			else:
 				rospy.loginfo("Goal failed. Client Goal Handle #: " + str(index))
 
@@ -242,15 +256,28 @@ class ActionClientRosIoTBridge:
 		self._goal_handles.append(goal_handle)
 		return goal_handle
 
-	def priority_sort(self, priority):
+	def priority_sort(self, priority, order_time):
+		"""
+			Returns weighted integer base on priority
+		"""
+
+		int_order_time = int(order_time.replace('-', '').replace(':', '').replace(' ', ''))
 		if priority == "HP":
-			return 0
+			return int_order_time
 		elif priority == "MP":
-			return 1
-		else:
-			return 2
+			return 2 * int_order_time
+		return 3 * int_order_time
 
 	def orders_callback(self, message):
+		"""
+			Callback function when orders come through ros_iot_bridge
+			* It recieves the orders
+			* Converts it to the format required by spreedsheet
+			* Pushes the order info to `IncomingOrders` sheet
+			* Sorts the the orders based on integer returned by `priority_sort`
+			  which takes into account priority and order time
+		"""
+
 		order = json.loads(message.message.replace(
 			"order_id", "Order ID").replace(
 			"order_time", "Order Date and Time").replace(
@@ -258,76 +285,95 @@ class ActionClientRosIoTBridge:
 			"qty", "Order Quantity").replace(
 			"city", "City").replace(
 			"lat", "Latitude").replace(
-			"lon","Longitude"))
+			"lon", "Longitude"))
+
 		if order["Item"] == "Medicine":
 			order["Priority"] = "HP"
-			order["Cost"] = "400"
+			order["Cost"] = "450"
 		elif order["Item"] == "Food":
 			order["Priority"] = "MP"
-			order["Cost"] = "200"
+			order["Cost"] = "250"
 		else:
 			order["Priority"] = "LP"
-			order["Cost"] = "100"
-		self.send_goal("http", "IncomingOrders", self._config_spread_sheet_id, str(order))
-		local_orders_to_dispatch = self._orders_to_dispatch + [order]
-		local_orders_to_dispatch.sort(key=lambda x: self.priority_sort(x["Priority"]))
-		self._orders_to_dispatch = local_orders_to_dispatch
-		rospy.logerr(self._orders_to_dispatch)
+			order["Cost"] = "150"
 
-	def update_Inventory(self, packages_color_info):
+		self.send_goal("http", "IncomingOrders", self._config_spread_sheet_id, str(order))
+		#self.send_goal("http", "IncomingOrders", self._config_submission_spread_sheet_id, str(order))
+		
+		self._flag_lock = 1
+		self._orders_to_dispatch.append(order)
+		self._orders_to_dispatch.sort(
+			key=lambda order: self.priority_sort(order["Priority"], order["Order Date and Time"]))
+		self._flag_lock = 0
+
+	# rospy.logerr(self._orders_to_dispatch)
+
+	def update_inventory(self, packages_color_info):
+		"""
+			Updates the "Inventory" sheet by info in `packages_color_info` 
+		"""
 		parameters = {
-		"SKU" : "" ,
-		"Item" : "",
-		"Priority" : "",
-		"Storage Number" : "",
-		"Cost" : "",
-		"Quantity" : 1}
+			"SKU": "",
+			"Item": "",
+			"Priority": "",
+			"Storage Number": "",
+			"Cost": "",
+			"Quantity": 1}
 		for k, v in sorted(packages_color_info.items(), key=lambda x: int(x[0][-2:])):
 			parameters["SKU"] = v[0].upper() + k[-2:] + datetime.date.today().strftime("%m%y")
 			if v == "red":
 				parameters["Item"] = "Medicines"
 				parameters["Priority"] = "HP"
-				parameters["Cost"] = 400
+				parameters["Cost"] = 450
 			elif v == "yellow":
 				parameters["Item"] = "Food"
 				parameters["Priority"] = "MP"
-				parameters["Cost"] = 200
+				parameters["Cost"] = 250
 			else:
 				parameters["Item"] = "Clothes"
 				parameters["Priority"] = "LP"
-				parameters["Cost"] = 100
-			parameters["Storage Number"] = 'R' + k[-2] + " C" + k[-1] 
+				parameters["Cost"] = 150
+			parameters["Storage Number"] = 'R' + k[-2] + " C" + k[-1]
+
 			self.send_goal("http", "Inventory", self._config_spread_sheet_id, str(parameters))
-			time.sleep(0.5)
+			#self.send_goal("http", "Inventory", self._config_submission_spread_sheet_id, str(parameters))
+
+			time.sleep(1)  # without delay when some data gets overwritten
+
+
 def main():
 	rospy.init_node('node_ur5_1', anonymous=True)
+
+	iot_client = ActionClientRosIoTBridge()
 	ur5_1 = Ur5Moveit('ur5_1')
-	client = ActionClientRosIoTBridge()
-	
+
 	try:
 		while not rospy.has_param('/packages_color_info'):
 			rospy.sleep(0.4)
 	except KeyboardInterrupt:
 		print('Quiting loop')
-	
+
 	packages_color_info = rospy.get_param('/packages_color_info')
 
-	client.update_Inventory(packages_color_info)
+	threading.Thread(name="inventory_updater", target=iot_client.update_inventory,
+					 args=(packages_color_info,)).start()
 
-	ur5_1.moveit_play_planned_path_from_file(ur5_1._file_path, "allZeros_to_home.yaml")
-	
+	ur5_1.moveit_hard_play_planned_path_from_file(ur5_1._file_path, "allZeros_to_home.yaml", 5)
+
 	vacuum_gripper = rospy.ServiceProxy('/eyrc/vb/ur5/activate_vacuum_gripper/ur5_1', vacuumGripper)
 	convear_belt = rospy.ServiceProxy('/eyrc/vb/conveyor/set_power', conveyorBeltPowerMsg)
-	
+
 	convear_belt(90)
-	
+
 	pkg_names = ['packagen00', 'packagen01', 'packagen02', 'packagen10', 'packagen11',
-				'packagen12', 'packagen20', 'packagen21', 'packagen22', 'packagen30'
-				'packagen31', 'packagen32']
-	for i in range(9):
-		while not client._orders_to_dispatch:
+				 'packagen12', 'packagen20', 'packagen21', 'packagen22', 'packagen30'
+																		 'packagen31', 'packagen32']
+	i = 0
+	while not rospy.is_shutdown() and i < 12:
+		while (not iot_client._orders_to_dispatch) or iot_client._flag_lock:
 			rospy.sleep(0.4)
-		order = client._orders_to_dispatch.pop(0)
+
+		order = iot_client._orders_to_dispatch.pop(0)
 
 		if order["Priority"] == "HP":
 			pkg_color = "red"
@@ -335,7 +381,7 @@ def main():
 			pkg_color = "yellow"
 		else:
 			pkg_color = "green"
-		
+
 		for j in pkg_names:
 			if packages_color_info[j] == pkg_color:
 				ur5_1._box_name = j
@@ -343,23 +389,28 @@ def main():
 				break
 
 		ur5_1.moveit_hard_play_planned_path_from_file(ur5_1._file_path, 'home_to_{}.yaml'.format(ur5_1._box_name), 5)
-		
+
 		vacuum_gripper(1)
-		#ur5_1.attach_box()
-		
+		# ur5_1.attach_box()
+
 		ur5_1.moveit_hard_play_planned_path_from_file(ur5_1._file_path, '{}_to_home.yaml'.format(ur5_1._box_name), 5)
 		vacuum_gripper(0)
-		
+		# ur5_1.detach_box()
+		# ur5_1.remove_box()
+
 		order["Dispatch Date and Time"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 		order_quantity = order.pop("Order Quantity")
 		order["Dispatch Quantity"] = order_quantity
-		order["Dispatch Status"] = "Yes"
-		client.send_goal("http", "OrdersDispatched", client._config_spread_sheet_id, str(order))
-		rospy.set_param("/packages_dispatch_info/{}".format(ur5_1._box_name), order)
-		#ur5_1.detach_box()
-		#ur5_1.remove_box()
+		order["Dispatch Status"] = "YES"
 
-	# del ur5_1
-	rospy.spin()
+		iot_client.send_goal("http", "OrdersDispatched", iot_client._config_spread_sheet_id, str(order))
+		#iot_client.send_goal("http", "OrdersDispatched", iot_client._config_submission_spread_sheet_id, str(order))
+
+		rospy.set_param("/packages_dispatch_info/{}".format(ur5_1._box_name), order)
+		i += 1
+
+	del ur5_1
+
+
 if __name__ == '__main__':
 	main()

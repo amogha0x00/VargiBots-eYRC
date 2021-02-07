@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
+import cv2
 import rospy
-from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from pyzbar.pyzbar import decode
-import cv2
+from sensor_msgs.msg import Image
 
 
 class Camera1:
@@ -32,7 +32,6 @@ class Camera1:
 			return 0
 		return -1
 
-
 	def callback(self, data):
 		"""
 			This is callback function for camera1 it gets image data through argument`data`
@@ -43,20 +42,20 @@ class Camera1:
 		self._current_time = rospy.get_time()
 		try:
 			cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+
+			roi = cv_image[290:920, 100:620]  # crop to only package area
+			lower_bound = (0, 0, 0)
+			if (self._current_time - self._start_time) > 15:  # if 15 sec is passed after launching the node then
+				self.qr_threshold += 1  # change the threshold value till all packages are detected
+				self.qr_threshold %= 256
+				rospy.logwarn("Default Config Not Working Trying New Configs: {}".format(self.qr_threshold))
+			upper_bound = (self.qr_threshold, self.qr_threshold, self.qr_threshold)
+			thresholded = cv2.inRange(roi, lower_bound, upper_bound)
+			inv = 255 - thresholded
+			if not self.get_qr_data(inv):
+				self.image_sub.unregister()
 		except CvBridgeError as e:
 			rospy.logerr(e)
-
-		roi = cv_image[290:920, 100:620] # crop to only package area
-		lower_bound = (0, 0, 0)
-		if (self._current_time - self._start_time) > 15: # if 15 sec is passed after launching the node then
-			self.qr_threshold += 1					   # change the threshold value till all packages are detected
-			self.qr_threshold %= 256
-			rospy.logwarn("Default Config Not Working Trying New Configs: {}".format(self.qr_threshold))
-		upper_bound = (self.qr_threshold, self.qr_threshold, self.qr_threshold)
-		thresholded = cv2.inRange(roi, lower_bound, upper_bound)
-		inv = 255-thresholded
-		if not self.get_qr_data(inv):
-			self.image_sub.unregister()
 
 	def get_package_name(self, coordinates):
 		"""
@@ -85,19 +84,20 @@ class Camera1:
 
 		package_index = package_index[::-1]
 
-		return 'packagen'+package_index
+		return 'packagen' + package_index
+
 
 def main():
-
 	rospy.init_node('node_get_package_info', anonymous=True)
 	try:
 		cam = Camera1()
 		while not cam.packages_info:
 			rospy.sleep(0.1)
 		rospy.set_param('/packages_color_info', cam.packages_info)
+		rospy.logwarn(cam.packages_info)
 	except Exception as e:
 		print(e)
-	rospy.logwarn(cam.packages_info)
+
 
 if __name__ == '__main__':
 	main()

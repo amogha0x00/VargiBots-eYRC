@@ -12,4 +12,5 @@ config_pyiot:
     sub_cb_ros_topic: "/ros_iot_bridge/mqtt/sub"   # ROS nodes can listen to this topic to receive data from MQTT
 
   google_apps:
-    spread_sheet_id: "AKfycbzcQiV-WQrNW7FbpTFCPyASuCy3c_UPKQiFQ8GQm0byur08x1WvxoZ3Lw" #"AKfycbw850dk4moVgebU2GGe0PUQUvvg8jTpSjBQCawJt3_13vgujLk" # Spreadsheet Id
+    spread_sheet_id: "AKfycbzcQiV-WQrNW7FbpTFCPyASuCy3c_UPKQiFQ8GQm0byur08x1WvxoZ3Lw"
+    submission_spread_sheet_id: "AKfycbw5xylppoda-8HPjt2Tzq4ShU_Xef-Ik-hEtBPcPk0gdGw8095j4RZ7"
