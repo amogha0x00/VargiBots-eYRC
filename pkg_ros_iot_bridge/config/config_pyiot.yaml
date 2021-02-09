@@ -5,7 +5,7 @@ config_pyiot:
     server_url: "broker.mqttdashboard.com"  # http://www.hivemq.com/demos/websocket-client/
     # server_url: "test.mosquitto.org"   # Alternative to HiveMQ
     server_port: 1883
-    topic_sub: "/eyrc/vb/abc/orders"  # <unique_id> = EsNEciqV
+    topic_sub: "/eyrc/vb/EsNEciqV/orders"  # <unique_id> = EsNEciqV
     topic_pub: "/eyrc/EsNEciqV/ros_to_iot"  # <unique_id> = EsNEciqV
     qos: 1
 
