@@ -3,8 +3,8 @@
   <arg name="record" default="false"/>
   <arg name="rec_name" default="t5.bag"/>
 
-  <!-- Launch task5 simulation in Gazebo --> 
-  <include file="$(find pkg_vb_sim)/launch/task5_simulation.launch" />
+  <!-- Launch task6 simulation in Gazebo --> 
+  <include file="$(find pkg_vb_sim)/launch/task6_simulation.launch" />
   <!-- ************************************************************* -->
 
   <!-- Launch two move_group nodes for the two UR5 Arms -->
@@ -12,8 +12,8 @@
   <!-- ************************************************************* -->
 
   <!-- Load pyiot config into parameter server and launch ros_iot_bridge node -->
-	<rosparam file ="$(find pkg_ros_iot_bridge)/config/config_pyiot.yaml"/>
-	<node pkg="pkg_ros_iot_bridge" type="node_action_server_ros_iot_bridge.py" name="node_action_server_ros_iot_bridge" output="screen"/>
+  <rosparam file ="$(find pkg_ros_iot_bridge)/config/config_pyiot.yaml"/>
+  <node pkg="pkg_ros_iot_bridge" type="node_action_server_ros_iot_bridge.py" name="node_action_server_ros_iot_bridge" output="screen"/>
   <!-- **************************************************************************************************************************** -->
 
   <!-- load planning scene into ur5_1 rviz window and publish it -->

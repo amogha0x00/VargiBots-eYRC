@@ -83,23 +83,23 @@ class Ur5Moveit:
 			This function is used to load and execute pre-planed trajectories 
 		"""
 		file_path = arg_file_path + arg_file_name
-		for _ in range(5):
-			before_joints = self._group.get_current_joint_values()
+		#for _ in range(5):
+		#	before_joints = self._group.get_current_joint_values()
 
 		with open(file_path, 'r') as file_open:
 			loaded_plan = yaml.load(file_open)
 
 		ret = self._group.execute(loaded_plan)
 
-		for _ in range(5):
-			after_joints = self._group.get_current_joint_values()
+		#for _ in range(5):
+		#	after_joints = self._group.get_current_joint_values()
 
 		# This needed only because even if arm completed the trejectory 
 		# It was returning Flase with error ABORTED 
 		# so hard_play version of this function was trying again and again unnessarlly
-		squared_error = sum([(i - j) ** 2 for i, j in zip(before_joints, after_joints)])
-		if squared_error > 10:  # this means arm has moved enough so trajectory was executed
-			return True  # calculated by measuring difference square of all the angles
+		#squared_error = sum([(i - j) ** 2 for i, j in zip(before_joints, after_joints)])
+		#if squared_error > 10:  # this means arm has moved enough so trajectory was executed
+		#	return True  # calculated by measuring difference square of all the angles
 		return ret
 
 	def moveit_hard_play_planned_path_from_file(self, arg_file_path, arg_file_name, arg_max_attempts):

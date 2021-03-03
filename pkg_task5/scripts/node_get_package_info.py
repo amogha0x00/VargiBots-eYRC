@@ -1,10 +1,15 @@
 #!/usr/bin/env python
 
-import cv2
+"""
+	This node uses 2D camera facing the shelf to extract the QR code data,
+	and store it in parameter server so that other nodes can use that info.
+"""
+
 import rospy
+from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from pyzbar.pyzbar import decode
-from sensor_msgs.msg import Image
+import cv2
 
 
 class Camera1:

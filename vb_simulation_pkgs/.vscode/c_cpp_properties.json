@@ -1,0 +1,43 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "",
+        "limitSymbolsToIncludedHeaders": true
+      },
+      "includePath": [
+        "/opt/ros/melodic/include/**",
+        "/home/amogha/catkin_ws/devel/include/**",
+        "/home/amogha/catkin_ws/src/ackermann_steering_controller/include/**",
+        "/home/amogha/catkin_ws/src/diff_drive_controller/include/**",
+        "/home/amogha/catkin_ws/src/effort_controllers/include/**",
+        "/home/amogha/catkin_ws/src/force_torque_sensor_controller/include/**",
+        "/home/amogha/catkin_ws/src/forward_command_controller/include/**",
+        "/home/amogha/catkin_ws/src/vb_simulation_pkgs/gazebo-conveyor/include/**",
+        "/home/amogha/catkin_ws/src/vb_simulation_pkgs/gazebo_logical_camera/include/**",
+        "/home/amogha/catkin_ws/src/vb_simulation_pkgs/gazebo_ros_pkgs/gazebo_plugins/include/**",
+        "/home/amogha/catkin_ws/src/vb_simulation_pkgs/gazebo_ros_pkgs/gazebo_ros/include/**",
+        "/home/amogha/catkin_ws/src/vb_simulation_pkgs/gazebo_ros_pkgs/gazebo_ros_control/include/**",
+        "/home/amogha/catkin_ws/src/vb_simulation_pkgs/gazebo_ros_link_attacher/include/**",
+        "/home/amogha/catkin_ws/src/gripper_action_controller/include/**",
+        "/home/amogha/catkin_ws/src/vb_simulation_pkgs/hrwros_gazebo/include/**",
+        "/home/amogha/catkin_ws/src/imu_sensor_controller/include/**",
+        "/home/amogha/catkin_ws/src/joint_state_controller/include/**",
+        "/home/amogha/catkin_ws/src/joint_trajectory_controller/include/**",
+        "/home/amogha/catkin_ws/src/pkg_ros_iot_bridge/include/**",
+        "/home/amogha/catkin_ws/src/pkg_task1/include/**",
+        "/home/amogha/catkin_ws/src/pkg_task2/include/**",
+        "/home/amogha/catkin_ws/src/pkg_task3/include/**",
+        "/home/amogha/catkin_ws/src/pkg_task4/include/**",
+        "/home/amogha/catkin_ws/src/pkg_task5/include/**",
+        "/home/amogha/catkin_ws/src/pkg_task_0/include/**",
+        "/home/amogha/catkin_ws/src/position_controllers/include/**",
+        "/home/amogha/catkin_ws/src/vb_simulation_pkgs/universal_robot/ur_kinematics/include/**",
+        "/home/amogha/catkin_ws/src/velocity_controllers/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS"
+    }
+  ],
+  "version": 4
+}

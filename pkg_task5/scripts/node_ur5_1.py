@@ -79,23 +79,23 @@ class Ur5Moveit:
 			This function is used to load and execute pre-planed trajectories 
 		"""
 		file_path = arg_file_path + arg_file_name
-		for _ in range(5):
-			before_joints = self._group.get_current_joint_values()
+		#for _ in range(5):
+		#	before_joints = self._group.get_current_joint_values()
 
 		with open(file_path, 'r') as file_open:
 			loaded_plan = yaml.load(file_open)
 
 		ret = self._group.execute(loaded_plan)
 
-		for _ in range(5):
-			after_joints = self._group.get_current_joint_values()
+		#for _ in range(5):
+		#	after_joints = self._group.get_current_joint_values()
 
 		# This needed only because even if arm completed the trejectory 
 		# It was returning Flase with error ABORTED 
 		# so hard_play version of this function was trying again and again unnessarlly
-		squared_error = sum([(i - j) ** 2 for i, j in zip(before_joints, after_joints)])
-		if squared_error > 6.5:  # this means arm has moved enough so trajectory was executed
-			return True  # calculated by measuring difference square of all the angles
+		#squared_error = sum([(i - j) ** 2 for i, j in zip(before_joints, after_joints)])
+		#if squared_error > 6.5:  # this means arm has moved enough so trajectory was executed
+		#	return True  # calculated by measuring difference square of all the angles
 		return ret
 
 	def moveit_hard_play_planned_path_from_file(self, arg_file_path, arg_file_name, arg_max_attempts):
@@ -347,9 +347,9 @@ class ActionClientRosIoTBridge:
 			parameters["Storage Number"] = 'R' + k[-2] + " C" + k[-1]
 
 			self.send_goal("http", "Inventory", self._config_spread_sheet_id, str(parameters))
+			rospy.sleep(1)  # without delay some data gets overwritten
 			self.send_goal("http", "Inventory", self._config_submission_spread_sheet_id, str(parameters))
-
-			time.sleep(1)  # without delay when some data gets overwritten
+			rospy.sleep(1)  # without delay some data gets overwritten
 
 
 def main():
