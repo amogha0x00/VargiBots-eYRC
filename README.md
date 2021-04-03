@@ -14,6 +14,7 @@ The packages to be delivered have their own priorities. Packages having a higher
 
 [![Watch the video](https://img.youtube.com/vi/BlTF1MuH6QU/maxresdefault.jpg)](https://youtu.be/BlTF1MuH6QU)
 
+**Dashboard** : https://amogha0x00.github.io/VB-1823_Warehouse_Dashboard/
 ## **Implementation**
 
 * Once all the packages are spawn the Camera#1 which is facing the shelf identifies the package using QR decoding method.
