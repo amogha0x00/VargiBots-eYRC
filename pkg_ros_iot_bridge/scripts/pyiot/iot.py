@@ -47,7 +47,7 @@ def update_spreadsheet(spread_sheet_id, sheet_name, data_points_dict):
 		ex: data_points_dict = { 'turtle_x': 10, 'turtle_y': 10, 'turtle_theta': 2} pushes 10 to turtle_x and turtle_y column
 		and 2 to turtle_theta column in this format there could be any number of data points
 	"""
-	parameters = {'id':sheet_name, 'Team Id':'VB#1823', 'Unique Id':'EsNEciqV'}
+	parameters = {'id':sheet_name, 'Team Id':'<your_team_id>', 'Unique Id':'<your_unique_id>'}
 	url = "https://script.google.com/macros/s/" + spread_sheet_id + "/exec"
 
 	parameters.update(data_points_dict) # appends datapoints to parameters

@@ -374,8 +374,11 @@ def main():
 
 		shipped_order = str(dispatched_order).replace("Dispatch", "Shipped")
 
-		iot_client.send_goal("http", "OrdersShipped", iot_client._config_spread_sheet_id, shipped_order)
-		iot_client.send_goal("http", "OrdersShipped", iot_client._config_submission_spread_sheet_id, shipped_order)
+
+		# Update Spredsheet
+		# iot_client.send_goal("http", "OrdersShipped", iot_client._config_spread_sheet_id, shipped_order)
+		# iot_client.send_goal("http", "OrdersShipped", iot_client._config_submission_spread_sheet_id, shipped_order)
+
 
 		pkg_color = packages_color_info[shipping_package]
 		ur5_2.moveit_hard_play_planned_path_from_file(ur5_2._file_path, '{}Bin_to_home.yaml'.format(pkg_color), 5)

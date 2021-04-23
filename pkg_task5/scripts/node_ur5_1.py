@@ -308,8 +308,10 @@ class ActionClientRosIoTBridge:
 			order["Priority"] = "LP"
 			order["Cost"] = "150"
 
-		self.send_goal("http", "IncomingOrders", self._config_spread_sheet_id, str(order))
-		self.send_goal("http", "IncomingOrders", self._config_submission_spread_sheet_id, str(order))
+		# Update Spredsheet
+
+		# self.send_goal("http", "IncomingOrders", self._config_spread_sheet_id, str(order))
+		# self.send_goal("http", "IncomingOrders", self._config_submission_spread_sheet_id, str(order))
 
 		self._flag_lock = 1
 		self._orders_to_dispatch.append(order)
@@ -346,10 +348,12 @@ class ActionClientRosIoTBridge:
 				parameters["Cost"] = 150
 			parameters["Storage Number"] = 'R' + k[-2] + " C" + k[-1]
 
-			self.send_goal("http", "Inventory", self._config_spread_sheet_id, str(parameters))
-			rospy.sleep(1)  # without delay some data gets overwritten
-			self.send_goal("http", "Inventory", self._config_submission_spread_sheet_id, str(parameters))
-			rospy.sleep(1)  # without delay some data gets overwritten
+			# Update Spredsheet
+
+			# self.send_goal("http", "Inventory", self._config_spread_sheet_id, str(parameters))
+			# rospy.sleep(1)  # without delay some data gets overwritten
+			# self.send_goal("http", "Inventory", self._config_submission_spread_sheet_id, str(parameters))
+			# rospy.sleep(1)  # without delay some data gets overwritten
 
 
 def main():
@@ -415,8 +419,9 @@ def main():
 		order["Dispatch Quantity"] = order_quantity
 		order["Dispatch Status"] = "YES"
 
-		iot_client.send_goal("http", "OrdersDispatched", iot_client._config_spread_sheet_id, str(order))
-		iot_client.send_goal("http", "OrdersDispatched", iot_client._config_submission_spread_sheet_id, str(order))
+		# Update Spredsheet
+		# iot_client.send_goal("http", "OrdersDispatched", iot_client._config_spread_sheet_id, str(order))
+		# iot_client.send_goal("http", "OrdersDispatched", iot_client._config_submission_spread_sheet_id, str(order))
 
 		rospy.set_param("/packages_dispatch_info/{}".format(ur5_1._box_name), order)
 		i += 1
