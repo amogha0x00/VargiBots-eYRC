@@ -153,3 +153,10 @@ This is the ROS package that handels all the IOT related tasks.
     3. can subscribe to any MQTT Topic and publish the message from MQTT subscription to a ROS Topic `sub_cb_ros_topic` specified in `config_pyiot.yaml` using `msgMqttSub.msg` message file.
 
 * **`iot.py`** - It contains all the necessary functions for IoT Tasks (MQTT & HTTP). It is imported by `node_action_server_ros_iot_bridge.py` for IoT tasks.
+
+### **Team Members**
+
+   * **Amoghavarsha S G (Team Leader)**
+   * **Niranjana Jois H C (Team Member)**
+   * **Ganesh G Shet (Team Member)**
+   * **Kiran C N (Team Member)**
